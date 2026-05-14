@@ -26,19 +26,20 @@ $cartCount = get_cart_count();
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
+    <div class="pull-refresh"></div>
     <header class="page-header">
         <h1>Order #<?= htmlspecialchars($order['order_number']) ?></h1>
         <a class="pill-button" href="/customer/orders.php">Back</a>
     </header>
     <main class="page-content">
-        <section class="track-card">
+        <section class="track-card" data-order-id="<?= $order['id'] ?>">
             <h2><?= ucfirst(str_replace('_', ' ', $order['status'])) ?></h2>
             <p>Estimated delivery within 20 minutes</p>
         </section>
 
         <section class="timeline-card">
             <?php foreach ($states as $key => $label): ?>
-                <div class="timeline-item <?= $key === $order['status'] ? 'active' : ($key === 'delivered' && $order['status'] === 'delivered' ? 'active' : '') ?>">
+                <div class="timeline-item <?= $key === $order['status'] ? 'active' : ($key === 'delivered' && $order['status'] === 'delivered' ? 'active' : '') ?>" data-status="<?= $key ?>">
                     <span class="timeline-dot"></span>
                     <div>
                         <strong><?= htmlspecialchars($label) ?></strong>
@@ -68,5 +69,9 @@ $cartCount = get_cart_count();
         <a href="/customer/orders.php">📄 Orders</a>
         <a href="/customer/profile.php">👤 Profile</a>
     </footer>
+    <script src="/assets/js/script.js"></script>
+    <script>
+    initPullToRefresh(() => location.reload());
+    </script>
 </body>
 </html>

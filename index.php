@@ -17,6 +17,8 @@ if (is_logged_in()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gebeta · Order Food in Addis Ababa</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#FC8019">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -51,8 +53,10 @@ if (is_logged_in()) {
         </div>
     </main>
 
-    <div class="modal-overlay hidden" id="modal-overlay"></div>
-    <div class="modal-sheet hidden" id="login-modal">
+    <div id="modal-overlay"></div>
+
+    <div class="modal-sheet" id="login-modal">
+        <div class="modal-drag-handle"></div>
         <button class="close-modal" id="close-login">✕</button>
         <h2>Login</h2>
         <form id="login-form" method="post" action="login.php">
@@ -65,7 +69,8 @@ if (is_logged_in()) {
         </form>
     </div>
 
-    <div class="modal-sheet hidden" id="register-modal">
+    <div class="modal-sheet" id="register-modal">
+        <div class="modal-drag-handle"></div>
         <button class="close-modal" id="close-register">✕</button>
         <h2>Sign up</h2>
         <form id="register-form" method="post" action="register.php">

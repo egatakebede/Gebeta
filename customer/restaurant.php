@@ -31,7 +31,7 @@ $cartCount = get_cart_count();
 <body>
     <header class="page-header restaurant-header">
         <a class="back-link" href="/customer/dashboard.php">← Back</a>
-        <a class="pill-button" href="/customer/cart.php">Cart (<?= $cartCount ?>)</a>
+        <a class="pill-button" href="/customer/cart.php">🛒 <span class="cart-count"><?= $cartCount ?></span></a>
     </header>
     <main class="page-content">
         <section class="restaurant-hero">
@@ -66,28 +66,69 @@ $cartCount = get_cart_count();
     </main>
     <footer class="bottom-bar">
         <a href="/customer/dashboard.php">🏠 Home</a>
-        <a href="/customer/cart.php">🛒 Cart (<?= $cartCount ?>)</a>
+        <a href="/customer/cart.php" data-cart-link>🛒 Cart<?= $cartCount ? ' (' . $cartCount . ')' : '' ?></a>
         <a href="/customer/orders.php">📄 Orders</a>
         <a href="/customer/profile.php">👤 Profile</a>
     </footer>
+    <script src="/assets/js/script.js"></script>
     <script>
-        document.querySelectorAll('.add-to-cart').forEach(function (button) {
-            button.addEventListener('click', function () {
-                const menuItemId = button.dataset.id;
-                fetch('/api/add-to-cart.php', {
+    document.querySelectorAll('.add-to-cart').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const id = this.dataset.id;
+            const orig = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<span class="spinning">↻</span>';
+            try {
+                const res  = await fetch('/api/add-to-cart.php', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: 'menu_item_id=' + encodeURIComponent(menuItemId) + '&quantity=1'
-                }).then(res => res.json()).then(data => {
-                    if (data.success) {
-                        button.textContent = 'Added';
-                        setTimeout(() => button.textContent = 'ADD', 1200);
-                    } else {
-                        alert(data.message || 'Unable to add item');
-                    }
+                    body: 'menu_item_id=' + encodeURIComponent(id) + '&quantity=1'
                 });
-            });
+                const data = await res.json();
+                if (data.success) {
+                    updateCartBadge(data.count);
+                    showToast('Added to cart!', 'success');
+                    // Replace button with qty control
+                    this.outerHTML = `<div class="qty-ctrl" data-id="${id}">
+                        <button onclick="cartQty(this,-1,${id})">−</button>
+                        <span>1</span>
+                        <button onclick="cartQty(this,1,${id})">+</button>
+                    </div>`;
+                } else {
+                    showToast(data.message || 'Could not add item', 'error');
+                    this.disabled = false;
+                    this.innerHTML = orig;
+                }
+            } catch {
+                showToast('Network error', 'error');
+                this.disabled = false;
+                this.innerHTML = orig;
+            }
         });
+    });
+
+    async function cartQty(btn, delta, id) {
+        const ctrl = btn.closest('.qty-ctrl');
+        const span = ctrl.querySelector('span');
+        const qty  = Math.max(0, parseInt(span.textContent) + delta);
+        const res  = await fetch('/api/update-cart.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'menu_item_id=' + id + '&quantity=' + qty
+        });
+        const data = await res.json();
+        if (data.success) {
+            updateCartBadge(data.count);
+            if (qty === 0) {
+                ctrl.outerHTML = `<button class="secondary-btn add-to-cart" data-id="${id}">ADD</button>`;
+                // re-attach listener
+                document.querySelector(`.add-to-cart[data-id="${id}"]`)
+                    ?.dispatchEvent(new Event('init'));
+            } else {
+                span.textContent = qty;
+            }
+        }
+    }
     </script>
 </body>
 </html>

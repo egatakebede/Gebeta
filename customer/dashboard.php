@@ -16,6 +16,7 @@ $cartCount = get_cart_count();
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
+    <div class="pull-refresh"></div>
     <header class="page-header">
         <div class="header-row">
             <div>
@@ -64,10 +65,13 @@ $cartCount = get_cart_count();
 
     <footer class="bottom-bar">
         <a href="/customer/dashboard.php">🏠 Home</a>
-        <a href="/customer/cart.php">🛒 Cart<?= $cartCount ? ' (' . $cartCount . ')' : '' ?></a>
+        <a href="/customer/cart.php" data-cart-link>🛒 Cart<?= $cartCount ? ' (' . $cartCount . ')' : '' ?></a>
         <a href="/customer/orders.php">📄 Orders</a>
         <a href="/customer/profile.php">👤 Profile</a>
     </footer>
     <script src="/assets/js/script.js"></script>
+    <script>
+    initPullToRefresh(() => location.reload());
+    </script>
 </body>
 </html>

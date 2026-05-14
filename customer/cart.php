@@ -56,37 +56,44 @@ $cartCount = get_cart_count();
         <a href="/customer/orders.php">📄 Orders</a>
         <a href="/customer/profile.php">👤 Profile</a>
     </footer>
+    <script src="/assets/js/script.js"></script>
     <script>
-        document.querySelectorAll('.quantity-btn').forEach(function (button) {
-            button.addEventListener('click', function () {
-                const id = button.dataset.id;
-                const action = button.dataset.action;
-                const row = button.closest('.cart-item-card');
-                const quantityEl = row.querySelector('.quantity-controls span');
-                let quantity = parseInt(quantityEl.textContent, 10);
-                if (action === 'decrease') {
-                    quantity = Math.max(0, quantity - 1);
-                } else {
-                    quantity += 1;
-                }
-                fetch('/api/update-cart.php', {
+    document.querySelectorAll('.quantity-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const id     = this.dataset.id;
+            const action = this.dataset.action;
+            const row    = this.closest('.cart-item-card');
+            const qEl    = row.querySelector('.quantity-controls span');
+            let qty = Math.max(0, parseInt(qEl.textContent) + (action === 'increase' ? 1 : -1));
+
+            try {
+                const res  = await fetch('/api/update-cart.php', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: 'menu_item_id=' + encodeURIComponent(id) + '&quantity=' + encodeURIComponent(quantity)
-                }).then(res => res.json()).then(data => {
-                    if (data.success) {
-                        if (quantity === 0) {
-                            row.remove();
-                        } else {
-                            quantityEl.textContent = quantity;
-                        }
-                        location.reload();
-                    } else {
-                        alert(data.message || 'Unable to update cart');
-                    }
+                    body: 'menu_item_id=' + id + '&quantity=' + qty
                 });
-            });
+                const data = await res.json();
+                if (data.success) {
+                    if (qty === 0) {
+                        row.style.transition = 'opacity 0.3s, transform 0.3s';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(40px)';
+                        setTimeout(() => row.remove(), 300);
+                    } else {
+                        qEl.textContent = qty;
+                    }
+                    updateCartBadge(data.count);
+                    // update subtotal display
+                    const priceEl = row.querySelector('strong');
+                    if (priceEl && data.item_subtotal) priceEl.textContent = data.item_subtotal;
+                } else {
+                    showToast(data.message || 'Could not update cart', 'error');
+                }
+            } catch {
+                showToast('Network error', 'error');
+            }
         });
+    });
     </script>
 </body>
 </html>
