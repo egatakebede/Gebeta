@@ -12,6 +12,7 @@ if (!$order || $order['restaurant_user'] !== $_SESSION['user']['id']) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     $status = $_POST['status'] ?? $order['status'];
     $allowed = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
     if (in_array($status, $allowed, true)) {
@@ -59,7 +60,7 @@ $cartCount = get_cart_count();
         <section class="detail-card">
             <h2>Update status</h2>
             <form method="post">
-                <select name="status">
+                <?= csrf_field() ?>
                     <?php foreach (['pending','confirmed','preparing','ready','out_for_delivery','delivered','cancelled'] as $status): ?>
                         <option value="<?= $status ?>" <?= $status === $order['status'] ? 'selected' : '' ?>><?= ucfirst(str_replace('_', ' ', $status)) ?></option>
                     <?php endforeach; ?>

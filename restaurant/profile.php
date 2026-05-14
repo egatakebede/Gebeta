@@ -11,11 +11,12 @@ if (!$restaurant) {
 }
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = sanitize($_POST['name'] ?? '');
+    csrf_verify();
+    $name        = sanitize($_POST['name'] ?? '');
     $description = sanitize($_POST['description'] ?? '');
-    $cuisine = sanitize($_POST['cuisine_type'] ?? '');
-    $location = sanitize($_POST['location'] ?? '');
-    $phone = sanitize($_POST['phone'] ?? '');
+    $cuisine     = sanitize($_POST['cuisine_type'] ?? '');
+    $location    = sanitize($_POST['location'] ?? '');
+    $phone       = sanitize($_POST['phone'] ?? '');
     if ($name && $location && $phone) {
         $update = $pdo->prepare('UPDATE restaurants SET name = ?, description = ?, cuisine_type = ?, location = ?, phone = ? WHERE id = ?');
         $update->execute([$name, $description, $cuisine, $location, $phone, $restaurant['id']]);
@@ -45,6 +46,7 @@ $cartCount = get_cart_count();
             <div class="notice"><?= htmlspecialchars($message) ?></div>
         <?php endif; ?>
         <form method="post" class="profile-form">
+            <?= csrf_field() ?>
             <label>Restaurant name</label>
             <input name="name" value="<?= htmlspecialchars($restaurant['name']) ?>" required>
             <label>Description</label>

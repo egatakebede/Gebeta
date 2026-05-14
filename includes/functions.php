@@ -85,3 +85,93 @@ function get_cart_total() {
     }
     return $total;
 }
+
+/* ── OTP helpers ── */
+function generate_otp(): string {
+    return str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+}
+
+function send_otp_email(string $email, string $name, string $purpose): bool {
+    global $pdo;
+
+    // Invalidate any previous unused OTPs for this email+purpose
+    $pdo->prepare('UPDATE otps SET used = 1 WHERE email = ? AND purpose = ? AND used = 0')
+        ->execute([$email, $purpose]);
+
+    $code    = generate_otp();
+    $pdo->prepare('INSERT INTO otps (email, code, purpose, expires_at) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))')
+        ->execute([$email, $code, $purpose]);
+
+    $subject = $purpose === 'register' ? 'Verify your Gebeta account' : 'Your Gebeta login code';
+    $html = '
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;">
+            <h2 style="color:#FC8019;margin-bottom:8px;">🍽️ Gebeta</h2>
+            <p style="color:#282C3F;font-size:16px;">Hi ' . htmlspecialchars($name) . ',</p>
+            <p style="color:#686B78;">Your one-time verification code is:</p>
+            <div style="font-size:40px;font-weight:700;letter-spacing:12px;color:#282C3F;margin:24px 0;text-align:center;">' . $code . '</div>
+            <p style="color:#686B78;font-size:13px;">This code expires in <strong>10 minutes</strong>. Do not share it with anyone.</p>
+            <hr style="border:none;border-top:1px solid #E8E8E8;margin:24px 0;">
+            <p style="color:#93959F;font-size:12px;">If you did not request this, you can safely ignore this email.</p>
+        </div>';
+
+    $payload = json_encode([
+        'sender'     => ['name' => BREVO_SENDER_NAME, 'email' => BREVO_SENDER_EMAIL],
+        'to'         => [['email' => $email, 'name' => $name]],
+        'subject'    => $subject,
+        'htmlContent'=> $html,
+    ]);
+
+    $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $payload,
+        CURLOPT_HTTPHEADER     => [
+            'accept: application/json',
+            'api-key: ' . BREVO_API_KEY,
+            'content-type: application/json',
+        ],
+    ]);
+    $response = curl_exec($ch);
+    $status   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    return $status >= 200 && $status < 300;
+}
+
+function verify_otp(string $email, string $code, string $purpose): bool {
+    global $pdo;
+
+    $stmt = $pdo->prepare(
+        'SELECT id, code FROM otps WHERE email = ? AND purpose = ? AND used = 0 AND expires_at > NOW() ORDER BY id DESC LIMIT 1'
+    );
+    $stmt->execute([$email, $purpose]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$row || $row['code'] !== $code) {
+        return false;
+    }
+
+    $pdo->prepare('UPDATE otps SET used = 1 WHERE id = ?')->execute([$row['id']]);
+    return true;
+}
+
+/* ── CSRF protection ── */
+function csrf_token(): string {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function csrf_field(): string {
+    return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars(csrf_token()) . '">';
+}
+
+function csrf_verify(): void {
+    $token = $_POST['csrf_token'] ?? '';
+    if (!hash_equals(csrf_token(), $token)) {
+        http_response_code(403);
+        exit('Invalid request.');
+    }
+}

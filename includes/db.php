@@ -9,5 +9,7 @@ try {
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
 } catch (PDOException $e) {
-    die('Database connection failed: ' . $e->getMessage());
+    error_log('DB connection failed: ' . $e->getMessage());
+    http_response_code(503);
+    exit('Service temporarily unavailable.');
 }

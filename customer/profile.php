@@ -6,16 +6,17 @@ require_once __DIR__ . '/../includes/db.php';
 $user = $_SESSION['user'];
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = sanitize($_POST['name'] ?? '');
+    csrf_verify();
+    $name  = sanitize($_POST['name'] ?? '');
     $phone = sanitize($_POST['phone'] ?? '');
     $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
     if ($name && $phone && $email) {
         $stmt = $pdo->prepare('SELECT id FROM users WHERE (email = ? OR phone = ?) AND id != ? LIMIT 1');
         $stmt->execute([$email, $phone, $user['id']]);
         if (!$stmt->fetch()) {
-            $update = $pdo->prepare('UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?');
-            $update->execute([$name, $email, $phone, $user['id']]);
-            $_SESSION['user']['name'] = $name;
+            $pdo->prepare('UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?')
+                ->execute([$name, $email, $phone, $user['id']]);
+            $_SESSION['user']['name']  = $name;
             $_SESSION['user']['email'] = $email;
             $_SESSION['user']['phone'] = $phone;
             $message = 'Profile saved successfully.';
@@ -27,8 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 $cartCount = get_cart_count();
-?>
-<!DOCTYPE html>
+?><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -46,6 +46,7 @@ $cartCount = get_cart_count();
             <div class="notice"><?= htmlspecialchars($message) ?></div>
         <?php endif; ?>
         <form method="post" class="profile-form">
+            <?= csrf_field() ?>
             <label>Full name</label>
             <input name="name" value="<?= htmlspecialchars($user['name']) ?>">
             <label>Phone</label>

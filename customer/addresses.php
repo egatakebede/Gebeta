@@ -6,6 +6,7 @@ if (!isset($_SESSION['delivery_address'])) {
 }
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     $address = sanitize($_POST['delivery_address'] ?? '');
     if ($address) {
         $_SESSION['delivery_address'] = $address;
@@ -34,6 +35,7 @@ $cartCount = get_cart_count();
             <div class="notice"><?= htmlspecialchars($message) ?></div>
         <?php endif; ?>
         <form method="post" class="profile-form">
+            <?= csrf_field() ?>
             <label>Default delivery address</label>
             <textarea name="delivery_address" rows="4"><?= htmlspecialchars($_SESSION['delivery_address']) ?></textarea>
             <button class="primary-btn" type="submit">Save address</button>

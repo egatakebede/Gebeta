@@ -29,7 +29,7 @@ if (count($restaurantIds) > 1) {
 }
 $restaurantId = $restaurantIds[0];
 $totalAmount = get_cart_total();
-$orderNumber = 'GB' . time() . rand(10, 99);
+$orderNumber = 'GB' . time() . random_int(10, 99);
 $deliveryFee = 20.00;
 
 $stmt = $pdo->prepare('INSERT INTO orders (order_number, user_id, restaurant_id, delivery_address, payment_method, total_amount, delivery_fee, payment_status, status) VALUES (?, ?, ?, ?, ?, ?, ?, "pending", "pending")');

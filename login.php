@@ -6,7 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('/index.php');
 }
 
-$email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
+$email    = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
 $password = trim($_POST['password'] ?? '');
 
 if (!$email || !$password) {
@@ -23,5 +23,21 @@ if (!$user || !password_verify($password, $user['password'])) {
     redirect('/index.php');
 }
 
-login_user($user);
-redirect('/index.php');
+if ($user['status'] === 'suspended') {
+    flash_set('error', 'Your account has been suspended.');
+    redirect('/index.php');
+}
+
+// Store pending login in session
+$_SESSION['pending_login'] = [
+    'id'    => $user['id'],
+    'email' => $user['email'],
+    'name'  => $user['name'],
+];
+
+if (!send_otp_email($user['email'], $user['name'], 'login')) {
+    flash_set('error', 'Could not send verification email. Please try again.');
+    redirect('/index.php');
+}
+
+redirect('/verify.php?purpose=login');

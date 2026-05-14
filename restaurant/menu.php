@@ -11,6 +11,7 @@ if (!$restaurant) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     $name = sanitize($_POST['name'] ?? '');
     $description = sanitize($_POST['description'] ?? '');
     $price = number_format(max(0, (float)($_POST['price'] ?? 0)), 2);
@@ -53,7 +54,7 @@ $cartCount = get_cart_count();
         <section class="menu-form-card">
             <h2>Add new menu item</h2>
             <form method="post">
-                <label>Name</label>
+                <?= csrf_field() ?>
                 <input name="name" required>
                 <label>Description</label>
                 <input name="description">
