@@ -415,54 +415,24 @@ function initGoogleLogin(mode) {
     showToast('Google Sign-In will open in a popup...', 'info');
 }
 
-/* ── Location capture ── */
-function captureLocation(latId, lngId, locId, textId) {
-    const textEl = document.getElementById(textId);
-    if (!navigator.geolocation) {
-        if (textEl) textEl.textContent = 'Location not supported';
-        return;
-    }
-    navigator.geolocation.getCurrentPosition(
-        async pos => {
-            const { latitude, longitude } = pos.coords;
-            document.getElementById(latId).value  = latitude;
-            document.getElementById(lngId).value  = longitude;
-            try {
-                const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
-                const data = await res.json();
-                const name = data.address?.suburb || data.address?.city_district || data.address?.city || 'Your location';
-                document.getElementById(locId).value = name;
-                if (textEl) textEl.textContent = '📍 ' + name;
-            } catch {
-                document.getElementById(locId).value = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-                if (textEl) textEl.textContent = '📍 Location detected';
-            }
-        },
-        err => {
-            if (textEl) textEl.textContent = err.code === 1 ? '📍 Location denied' : '📍 Could not detect';
-        },
-        { timeout: 8000, maximumAge: 60000 }
-    );
-}
-
 /* ── Enhanced DOMContentLoaded bootstrap ── */
 const originalDOMContentLoaded = () => {
     /* Modal triggers */
     document.getElementById('open-login')    ?.addEventListener('click', () => {
         openModal('login-modal');
-        captureLocation('login-lat', 'login-lng', 'login-loc', 'login-location-text');
     });
     document.getElementById('open-register') ?.addEventListener('click', () => {
         openModal('register-modal');
-        captureLocation('reg-lat', 'reg-lng', 'reg-loc', 'reg-location-text');
     });
     document.getElementById('close-login')   ?.addEventListener('click', () => closeModal('login-modal'));
     document.getElementById('close-register')?.addEventListener('click', () => closeModal('register-modal'));
+    document.getElementById('close-location')?.addEventListener('click', () => closeModal('location-modal'));
 
     const overlay = document.getElementById('modal-overlay');
     overlay?.addEventListener('click', () => {
         closeModal('login-modal');
         closeModal('register-modal');
+        closeModal('location-modal');
     });
 
     document.querySelectorAll('.switch-tab').forEach(btn => {
@@ -470,11 +440,9 @@ const originalDOMContentLoaded = () => {
             if (btn.dataset.target === 'register') {
                 closeModal('login-modal');
                 openModal('register-modal');
-                captureLocation('reg-lat', 'reg-lng', 'reg-loc', 'reg-location-text');
             } else {
                 closeModal('register-modal');
                 openModal('login-modal');
-                captureLocation('login-lat', 'login-lng', 'login-loc', 'login-location-text');
             }
         });
     });
@@ -490,6 +458,38 @@ const originalDOMContentLoaded = () => {
     const trackEl = document.querySelector('[data-order-id]');
     if (trackEl) startOrderTracking(trackEl.dataset.orderId);
 };
+
+/* ── Location modal functions ── */
+function openLocationModal(type) {
+    window.currentLocationType = type;
+    openModal('location-modal');
+}
+
+function setLocation(name, lat, lng) {
+    const type = window.currentLocationType;
+    const latId = type + '-lat';
+    const lngId = type + '-lng';
+    const locId = type + '-loc';
+    const textId = type + '-location-text';
+
+    document.getElementById(latId).value = lat;
+    document.getElementById(lngId).value = lng;
+    document.getElementById(locId).value = name;
+    document.getElementById(textId).textContent = name;
+
+    closeModal('location-modal');
+}
+
+function setManualLocation() {
+    const manualInput = document.getElementById('manual-location');
+    const location = manualInput.value.trim();
+
+    if (location) {
+        // For manual locations, use default Addis Ababa coordinates
+        setLocation(location, 9.145, 38.7335);
+        manualInput.value = '';
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     originalDOMContentLoaded();

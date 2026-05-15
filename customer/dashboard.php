@@ -23,11 +23,11 @@ $cartCount = get_cart_count();
                 <div class="subtitle">📍 Bole</div>
                 <h1>Addis Ababa, Ethiopia</h1>
             </div>
-            <a class="pill-button" href="/customer/profile.php" style="background: linear-gradient(135deg, #FC8019, #E67E22); color: #fff; font-weight: 700;">AB</a>
+            <a class="pill-button" href="/customer/profile.php">AB</a>
         </div>
         <div class="search-box">
             <form onsubmit="return false;">
-                <input id="search-input" type="search" name="q" placeholder="🔍 Search for restaurants..." value="<?= htmlspecialchars($_GET['q'] ?? '') ?>">
+                <input id="search-input" type="search" name="q" placeholder="Search restaurants, dishes or cuisine" value="<?= htmlspecialchars($_GET['q'] ?? '') ?>">
             </form>
             <div id="search-results" class="search-results"></div>
         </div>
@@ -35,43 +35,50 @@ $cartCount = get_cart_count();
 
     <main class="page-content">
         <section class="carousel-section">
-            <div class="category-card">
-                <div style="font-size: 28px; margin-bottom: 6px;">🫓</div>
-                <strong>Ethiopian</strong>
-            </div>
-            <div class="category-card">
-                <div style="font-size: 28px; margin-bottom: 6px;">🍲</div>
-                <strong>Platters</strong>
-            </div>
-            <div class="category-card">
-                <div style="font-size: 28px; margin-bottom: 6px;">🥘</div>
-                <strong>Special</strong>
-            </div>
-            <div class="category-card">
-                <div style="font-size: 28px; margin-bottom: 6px;">🍹</div>
-                <strong>Drinks</strong>
-            </div>
-            <div class="category-card">
-                <div style="font-size: 28px; margin-bottom: 6px;">🍰</div>
-                <strong>Desserts</strong>
-            </div>
+            <button type="button" class="category-pill">
+                <span class="category-emoji">🫓</span>
+                Ethiopian
+            </button>
+            <button type="button" class="category-pill">
+                <span class="category-emoji">🍲</span>
+                Platters
+            </button>
+            <button type="button" class="category-pill">
+                <span class="category-emoji">🥘</span>
+                Special
+            </button>
+            <button type="button" class="category-pill">
+                <span class="category-emoji">🍹</span>
+                Drinks
+            </button>
+            <button type="button" class="category-pill">
+                <span class="category-emoji">🍰</span>
+                Desserts
+            </button>
         </section>
 
-        <section class="restaurants-section" style="padding: 0 20px;">
+        <section class="restaurants-section">
             <div class="section-header">
-                <h2>⭐ Top Rated Restaurants</h2>
-                <a href="#" style="color: var(--primary-orange); font-weight: 700; font-size: 14px;">See all →</a>
+                <h2>Top rated restaurants</h2>
+                <a class="section-link" href="#">See all</a>
             </div>
             <div class="cards-grid">
                 <?php foreach ($restaurants as $restaurant): ?>
-                    <a class="restaurant-card" href="/customer/restaurant.php?id=<?= $restaurant['id'] ?>" style="display: grid; padding: 0; overflow: hidden;">
-                        <div style="background: linear-gradient(135deg, #FFF5ED, #FFE8D6); height: 120px; display: grid; place-items: center; font-size: 48px;">🍽️</div>
-                        <div style="padding: 14px;">
-                            <h3 style="font-size: 15px; margin-bottom: 4px;"><?= htmlspecialchars($restaurant['name']) ?></h3>
-                            <p style="font-size: 12px; color: var(--gray-text); margin-bottom: 8px;"><?= htmlspecialchars($restaurant['cuisine_type']) ?></p>
-                            <div class="restaurant-stats">
-                                <span style="background: linear-gradient(135deg, #FFF5ED, #FFE8D6); color: var(--primary-orange); font-weight: 700;">⭐ <?= number_format($restaurant['rating'], 1) ?></span>
-                                <span>⏱️ 38 min</span>
+                    <a class="restaurant-card" href="/customer/restaurant.php?id=<?= $restaurant['id'] ?>">
+                        <div class="restaurant-image">
+                            <div class="restaurant-overlay"></div>
+                            <div class="restaurant-labels">
+                                <span class="rating-pill">⭐ <?= number_format($restaurant['rating'], 1) ?></span>
+                                <span class="offer-pill">20% OFF</span>
+                            </div>
+                            <div class="restaurant-hero">🍽️</div>
+                        </div>
+                        <div class="restaurant-card-content">
+                            <h3><?= htmlspecialchars($restaurant['name']) ?></h3>
+                            <p><?= htmlspecialchars($restaurant['cuisine_type']) ?> • 30-40 min</p>
+                            <div class="restaurant-details">
+                                <span>Free delivery</span>
+                                <span>4.9k+ ratings</span>
                             </div>
                         </div>
                     </a>

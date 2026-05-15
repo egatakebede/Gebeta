@@ -36,6 +36,26 @@ $_SESSION['pending_register'] = [
     'location_name' => sanitize($_POST['location_name'] ?? ''),
 ];
 
+// DEV MODE: Skip email verification
+if (true) {
+    // Create user directly
+    $stmt = $pdo->prepare('INSERT INTO users (name, phone, email, password, role, latitude, longitude, location_name, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)');
+    $stmt->execute([
+        $name,
+        $phone,
+        $email,
+        $_SESSION['pending_register']['password'],
+        $role,
+        $_SESSION['pending_register']['latitude'],
+        $_SESSION['pending_register']['longitude'],
+        $_SESSION['pending_register']['location_name']
+    ]);
+    
+    unset($_SESSION['pending_register']);
+    flash_set('success', 'Account created! Please login.');
+    redirect('/index.php');
+}
+
 if (!send_otp_email($email, $name, 'register')) {
     flash_set('error', 'Could not send verification email. Please try again.');
     redirect('/index.php');
