@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+node_modules
+vendor
+*.md
+DEPLOYMENT.md
+quick-deploy.sh
+docker-compose.yml
+.DS_Store
+*.log

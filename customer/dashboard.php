@@ -20,8 +20,8 @@ $cartCount = get_cart_count();
     <header class="page-header">
         <div class="header-row">
             <div>
-                <div class="subtitle">📍 Bole</div>
-                <h1>Addis Ababa, Ethiopia</h1>
+                <div class="subtitle">📍 Hawassa</div>
+                <h1>Hawassa, Ethiopia</h1>
             </div>
             <a class="pill-button" href="/customer/profile.php">AB</a>
         </div>
@@ -66,12 +66,12 @@ $cartCount = get_cart_count();
                 <?php foreach ($restaurants as $restaurant): ?>
                     <a class="restaurant-card" href="/customer/restaurant.php?id=<?= $restaurant['id'] ?>">
                         <div class="restaurant-image">
+                            <img src="/assets/images/food/doro-wat.jpg" alt="<?= htmlspecialchars($restaurant['name']) ?>">
                             <div class="restaurant-overlay"></div>
                             <div class="restaurant-labels">
                                 <span class="rating-pill">⭐ <?= number_format($restaurant['rating'], 1) ?></span>
                                 <span class="offer-pill">20% OFF</span>
                             </div>
-                            <div class="restaurant-hero">🍽️</div>
                         </div>
                         <div class="restaurant-card-content">
                             <h3><?= htmlspecialchars($restaurant['name']) ?></h3>

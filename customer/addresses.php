@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_login(['customer']);
 if (!isset($_SESSION['delivery_address'])) {
-    $_SESSION['delivery_address'] = 'Bole, Addis Ababa, Building 12, Apt 5A';
+    $_SESSION['delivery_address'] = 'Piassa, Hawassa, Building 12, Apt 5A';
 }
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

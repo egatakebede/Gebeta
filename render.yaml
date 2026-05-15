@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: gebeta-app
+    env: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: gebeta-db
+          property: host
+      - key: DB_NAME
+        fromDatabase:
+          name: gebeta-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: gebeta-db
+          property: user
+      - key: DB_PASS
+        fromDatabase:
+          name: gebeta-db
+          property: password
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_SENDER_EMAIL
+        sync: false
+
+databases:
+  - name: gebeta-db
+    databaseName: gebeta
+    user: gebeta
+    plan: free

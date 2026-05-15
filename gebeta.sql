@@ -133,7 +133,7 @@ INSERT INTO users (name, email, phone, password, role, status) VALUES
 ('Test Customer', 'customer@test.com', '+251911000003', '$2y$10$iTE5bq9RdPVCtv/N1u0QluUZdvuLFXakYIpsJYkz3l82XX/n4sUKm', 'customer', 'active');
 
 INSERT INTO restaurants (user_id, name, description, cuisine_type, location, phone, opening_time, closing_time, rating, status) VALUES
-(2, 'Yod Abyssinia', 'Authentic Ethiopian food with traditional recipes.', 'Ethiopian, Injera, Doro Wat', 'Bole, Addis Ababa', '+251911000002', '09:00:00', '22:00:00', 4.3, 'active');
+(2, 'Yod Abyssinia', 'Authentic Ethiopian food with traditional recipes.', 'Ethiopian, Injera, Doro Wat', 'Piassa, Hawassa', '+251911000002', '09:00:00', '22:00:00', 4.3, 'active');
 
 INSERT INTO categories (restaurant_id, name, display_order) VALUES
 (1, 'Main dishes', 1),
@@ -148,7 +148,7 @@ INSERT INTO menu_items (category_id, name, description, price, is_available) VAL
 (2, 'Fresh Juice', 'Seasonal fruit juice.', 40.00, 1);
 
 INSERT INTO orders (order_number, user_id, restaurant_id, delivery_address, payment_method, payment_status, total_amount, delivery_fee, status) VALUES
-('GB100001', 3, 1, 'Bole, Addis Ababa, Building 12, Apt 5A', 'cash', 'pending', 530.00, 0.00, 'pending');
+('GB100001', 3, 1, 'Piassa, Hawassa, Building 12, Apt 5A', 'cash', 'pending', 530.00, 0.00, 'pending');
 
 INSERT INTO order_items (order_id, menu_item_id, quantity, price) VALUES
 (1, 1, 1, 250.00),

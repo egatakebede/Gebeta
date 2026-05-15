@@ -52,7 +52,7 @@ $cartCount = get_cart_count();
 
     <main class="page-content" style="padding-top:0;padding-bottom:80px;">
         <section class="restaurant-hero">
-            <div class="hero-image">🫓</div>
+            <div class="hero-image"><img src="/assets/images/food/doro-wat.jpg" alt="<?= htmlspecialchars($restaurant['name']) ?>" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; box-shadow: 0 8px 24px rgba(0,0,0,0.15);"></div>
             <div class="restaurant-info">
                 <h1 style="font-size:24px;margin-bottom:8px;"><?= htmlspecialchars($restaurant['name']) ?></h1>
                 <p style="color:var(--gray-text);font-size:14px;margin:6px 0 12px;"><?= htmlspecialchars($restaurant['cuisine_type']) ?> • <?= htmlspecialchars($restaurant['location']) ?></p>

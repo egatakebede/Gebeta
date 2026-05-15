@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=gebeta
+      - DB_USER=gebeta
+      - DB_PASS=gebeta123
+      - BREVO_API_KEY=${BREVO_API_KEY}
+      - BREVO_SENDER_EMAIL=${BREVO_SENDER_EMAIL}
+    volumes:
+      - ./uploads:/var/www/html/uploads
+    depends_on:
+      - db
+    networks:
+      - gebeta-network
+
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root123
+      - MYSQL_DATABASE=gebeta
+      - MYSQL_USER=gebeta
+      - MYSQL_PASSWORD=gebeta123
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./gebeta.sql:/docker-entrypoint-initdb.d/gebeta.sql
+    networks:
+      - gebeta-network
+
+volumes:
+  db-data:
+
+networks:
+  gebeta-network:
+    driver: bridge

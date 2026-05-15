@@ -8,7 +8,7 @@ $subtotal = get_cart_total();
 if (empty($cartItems)) {
     redirect('/customer/cart.php');
 }
-$deliveryAddress = $_SESSION['delivery_address'] ?? 'Bole, Addis Ababa, Building 12, Apt 5A';
+$deliveryAddress = $_SESSION['delivery_address'] ?? 'Bole, Hawassa, Building 12, Apt 5A';
 $cartCount = get_cart_count();
 ?>
 <!DOCTYPE html>

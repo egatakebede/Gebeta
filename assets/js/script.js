@@ -485,7 +485,7 @@ function setManualLocation() {
     const location = manualInput.value.trim();
 
     if (location) {
-        // For manual locations, use default Addis Ababa coordinates
+        // For manual locations, use default Hawassa coordinates
         setLocation(location, 9.145, 38.7335);
         manualInput.value = '';
     }
