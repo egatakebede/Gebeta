@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/config.php';
 
+$pdo = null;
+
 try {
     $pdo = new PDO(
         'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
@@ -10,6 +12,5 @@ try {
     );
 } catch (PDOException $e) {
     error_log('DB connection failed: ' . $e->getMessage());
-    http_response_code(503);
-    exit('Service temporarily unavailable.');
+    // Don't exit immediately - let pages handle DB unavailability gracefully
 }
