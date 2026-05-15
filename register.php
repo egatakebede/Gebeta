@@ -26,11 +26,14 @@ if ($stmt->fetch()) {
 
 // Store pending registration in session
 $_SESSION['pending_register'] = [
-    'name'     => $name,
-    'phone'    => $phone,
-    'email'    => $email,
-    'password' => password_hash($password, PASSWORD_DEFAULT),
-    'role'     => $role,
+    'name'          => $name,
+    'phone'         => $phone,
+    'email'         => $email,
+    'password'      => password_hash($password, PASSWORD_DEFAULT),
+    'role'          => $role,
+    'latitude'      => is_numeric($_POST['latitude'] ?? '')  ? (float)$_POST['latitude']  : null,
+    'longitude'     => is_numeric($_POST['longitude'] ?? '') ? (float)$_POST['longitude'] : null,
+    'location_name' => sanitize($_POST['location_name'] ?? ''),
 ];
 
 if (!send_otp_email($email, $name, 'register')) {

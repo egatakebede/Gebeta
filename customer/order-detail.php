@@ -63,12 +63,7 @@ $cartCount = get_cart_count();
             <div class="detail-line"><span>Total</span><span><?= format_price($order['total_amount'] + $order['delivery_fee']) ?></span></div>
         </section>
     </main>
-    <footer class="bottom-bar">
-        <a href="/customer/dashboard.php">🏠 Home</a>
-        <a href="/customer/cart.php">🛒 Cart (<?= $cartCount ?>)</a>
-        <a href="/customer/orders.php">📄 Orders</a>
-        <a href="/customer/profile.php">👤 Profile</a>
-    </footer>
+    <?php $active_nav = 'orders'; include __DIR__ . '/../includes/bottom-nav.php'; ?>
     <script src="/assets/js/script.js"></script>
     <script>
     initPullToRefresh(() => location.reload());

@@ -60,11 +60,6 @@ $cartCount = get_cart_count();
             <a class="secondary-btn" href="/logout.php">Logout</a>
         </div>
     </main>
-    <footer class="bottom-bar">
-        <a href="/customer/dashboard.php">🏠 Home</a>
-        <a href="/customer/cart.php">🛒 Cart (<?= $cartCount ?>)</a>
-        <a href="/customer/orders.php">📄 Orders</a>
-        <a href="/customer/profile.php">👤 Profile</a>
-    </footer>
+    <?php $active_nav = 'profile'; include __DIR__ . '/../includes/bottom-nav.php'; ?>
 </body>
 </html>

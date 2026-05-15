@@ -4,72 +4,89 @@ require_login(['customer']);
 require_once __DIR__ . '/../includes/db.php';
 
 $id = (int)($_GET['id'] ?? 0);
-if ($id <= 0) {
-    redirect('/customer/dashboard.php');
-}
+if ($id <= 0) redirect('/customer/dashboard.php');
 
 $stmt = $pdo->prepare('SELECT r.*, u.name AS owner_name FROM restaurants r JOIN users u ON r.user_id = u.id WHERE r.id = ? AND r.status = "active" LIMIT 1');
 $stmt->execute([$id]);
 $restaurant = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$restaurant) {
-    redirect('/customer/dashboard.php');
-}
+if (!$restaurant) redirect('/customer/dashboard.php');
 
 $stmt = $pdo->prepare('SELECT mi.*, c.name AS category_name FROM menu_items mi JOIN categories c ON mi.category_id = c.id WHERE c.restaurant_id = ? ORDER BY mi.created_at DESC');
 $stmt->execute([$id]);
 $menuItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $cartCount = get_cart_count();
-?>
-<!DOCTYPE html>
+?><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($restaurant['name']) ?> · Gebeta</title>
     <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        .restaurant-hero {
+            background: linear-gradient(135deg, #FFF5ED 0%, #FFE8D6 100%);
+            border-radius: 20px;
+            padding: 30px 20px;
+            margin: 0 20px 24px;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(252,128,25,0.15);
+        }
+        .hero-image { font-size: 64px; margin-bottom: 16px; }
+        .menu-section { padding: 0 20px; }
+        .menu-section h2 {
+            font-size: 20px;
+            margin: 20px 0;
+            color: var(--primary-orange);
+        }
+    </style>
 </head>
 <body>
-    <header class="page-header restaurant-header">
-        <a class="back-link" href="/customer/dashboard.php">← Back</a>
-        <a class="pill-button" href="/customer/cart.php">🛒 <span class="cart-count"><?= $cartCount ?></span></a>
+    <header class="page-header">
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+            <a class="pill-button" href="/customer/dashboard.php">← Back</a>
+            <a class="pill-button" href="/customer/cart.php" style="background:var(--primary-orange);color:#fff;position:relative;">
+                🛒 <span class="cart-count nav-badge" style="position:relative;top:auto;right:auto;display:inline-flex;margin-left:4px;"><?= $cartCount ?: '' ?></span>
+            </a>
+        </div>
     </header>
-    <main class="page-content">
+
+    <main class="page-content" style="padding-top:0;padding-bottom:80px;">
         <section class="restaurant-hero">
             <div class="hero-image">🫓</div>
             <div class="restaurant-info">
-                <h1><?= htmlspecialchars($restaurant['name']) ?></h1>
-                <p><?= htmlspecialchars($restaurant['cuisine_type']) ?> • <?= htmlspecialchars($restaurant['location']) ?></p>
-                <div class="restaurant-stats">
-                    <span>⭐ <?= number_format($restaurant['rating'], 1) ?></span>
-                    <span>38 mins</span>
-                    <span>300 Birr</span>
+                <h1 style="font-size:24px;margin-bottom:8px;"><?= htmlspecialchars($restaurant['name']) ?></h1>
+                <p style="color:var(--gray-text);font-size:14px;margin:6px 0 12px;"><?= htmlspecialchars($restaurant['cuisine_type']) ?> • <?= htmlspecialchars($restaurant['location']) ?></p>
+                <div class="restaurant-stats" style="justify-content:center;">
+                    <span style="background:linear-gradient(135deg,#FFF5ED,#FFE8D6);color:var(--primary-orange);font-weight:700;">⭐ <?= number_format($restaurant['rating'], 1) ?></span>
+                    <span>⏱️ 38 mins</span>
+                    <span>💰 Min 300</span>
                 </div>
             </div>
         </section>
 
         <section class="menu-section">
-            <h2>Recommended</h2>
+            <h2>🍲 Menu</h2>
             <?php if (empty($menuItems)): ?>
-                <p class="empty-state">No menu items available yet.</p>
-            <?php endif; ?>
-            <?php foreach ($menuItems as $item): ?>
-                <div class="menu-item-card">
-                    <div>
-                        <h3><?= htmlspecialchars($item['name']) ?></h3>
-                        <p><?= htmlspecialchars($item['description']) ?></p>
-                        <strong><?= format_price($item['price']) ?></strong>
+                <div class="empty-state">No menu items available yet.</div>
+            <?php else: ?>
+                <div style="display:grid;gap:12px;margin-bottom:20px;">
+                <?php foreach ($menuItems as $item): ?>
+                    <div class="menu-item-card" style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:14px;border-radius:16px;">
+                        <div style="min-width:0;">
+                            <h3 style="font-size:15px;margin-bottom:4px;"><?= htmlspecialchars($item['name']) ?></h3>
+                            <p style="font-size:12px;color:var(--gray-text);margin-bottom:8px;line-height:1.4;"><?= htmlspecialchars(mb_substr($item['description'], 0, 60)) . (mb_strlen($item['description']) > 60 ? '...' : '') ?></p>
+                            <strong style="color:var(--primary-orange);font-size:14px;"><?= format_price($item['price']) ?></strong>
+                        </div>
+                        <button class="secondary-btn add-to-cart" data-id="<?= $item['id'] ?>" style="white-space:nowrap;padding:10px 14px;font-size:13px;font-weight:700;">ADD</button>
                     </div>
-                    <button class="secondary-btn add-to-cart" data-id="<?= $item['id'] ?>">ADD</button>
+                <?php endforeach; ?>
                 </div>
-            <?php endforeach; ?>
+            <?php endif; ?>
         </section>
     </main>
-    <footer class="bottom-bar">
-        <a href="/customer/dashboard.php">🏠 Home</a>
-        <a href="/customer/cart.php" data-cart-link>🛒 Cart<?= $cartCount ? ' (' . $cartCount . ')' : '' ?></a>
-        <a href="/customer/orders.php">📄 Orders</a>
-        <a href="/customer/profile.php">👤 Profile</a>
-    </footer>
+
+    <?php $active_nav = 'home'; include __DIR__ . '/../includes/bottom-nav.php'; ?>
+
     <script src="/assets/js/script.js"></script>
     <script>
     document.querySelectorAll('.add-to-cart').forEach(btn => {
@@ -87,8 +104,7 @@ $cartCount = get_cart_count();
                 const data = await res.json();
                 if (data.success) {
                     updateCartBadge(data.count);
-                    showToast('Added to cart!', 'success');
-                    // Replace button with qty control
+                    showToast('Added to cart! ✓', 'success');
                     this.outerHTML = `<div class="qty-ctrl" data-id="${id}">
                         <button onclick="cartQty(this,-1,${id})">−</button>
                         <span>1</span>
@@ -120,10 +136,8 @@ $cartCount = get_cart_count();
         if (data.success) {
             updateCartBadge(data.count);
             if (qty === 0) {
-                ctrl.outerHTML = `<button class="secondary-btn add-to-cart" data-id="${id}">ADD</button>`;
-                // re-attach listener
-                document.querySelector(`.add-to-cart[data-id="${id}"]`)
-                    ?.dispatchEvent(new Event('init'));
+                ctrl.outerHTML = `<button class="secondary-btn add-to-cart" data-id="${id}" style="white-space:nowrap;padding:10px 14px;font-size:13px;font-weight:700;">ADD</button>`;
+                document.querySelector(`.add-to-cart[data-id="${id}"]`)?.addEventListener('click', arguments.callee);
             } else {
                 span.textContent = qty;
             }

@@ -30,9 +30,12 @@ if ($user['status'] === 'suspended') {
 
 // Store pending login in session
 $_SESSION['pending_login'] = [
-    'id'    => $user['id'],
-    'email' => $user['email'],
-    'name'  => $user['name'],
+    'id'            => $user['id'],
+    'email'         => $user['email'],
+    'name'          => $user['name'],
+    'latitude'      => is_numeric($_POST['latitude'] ?? '')  ? (float)$_POST['latitude']  : null,
+    'longitude'     => is_numeric($_POST['longitude'] ?? '') ? (float)$_POST['longitude'] : null,
+    'location_name' => sanitize($_POST['location_name'] ?? ''),
 ];
 
 if (!send_otp_email($user['email'], $user['name'], 'login')) {

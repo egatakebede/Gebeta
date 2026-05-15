@@ -34,16 +34,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         if ($purpose === 'register') {
             $p = $_SESSION['pending_register'];
-            $stmt = $pdo->prepare('INSERT INTO users (name, email, phone, password, role) VALUES (?, ?, ?, ?, ?)');
-            $stmt->execute([$p['name'], $p['email'], $p['phone'], $p['password'], $p['role']]);
+            $stmt = $pdo->prepare('INSERT INTO users (name, email, phone, password, role, latitude, longitude, location_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt->execute([$p['name'], $p['email'], $p['phone'], $p['password'], $p['role'], $p['latitude'], $p['longitude'], $p['location_name']]);
             $userId = $pdo->lastInsertId();
             $user = $pdo->prepare('SELECT * FROM users WHERE id = ?');
             $user->execute([$userId]);
             login_user($user->fetch(PDO::FETCH_ASSOC));
             unset($_SESSION['pending_register']);
         } else {
+            $p = $_SESSION['pending_login'];
+            // Update location if provided
+            if ($p['latitude'] && $p['longitude']) {
+                $pdo->prepare('UPDATE users SET latitude = ?, longitude = ?, location_name = ? WHERE id = ?')
+                    ->execute([$p['latitude'], $p['longitude'], $p['location_name'], $p['id']]);
+            }
             $user = $pdo->prepare('SELECT * FROM users WHERE id = ?');
-            $user->execute([$_SESSION['pending_login']['id']]);
+            $user->execute([$p['id']]);
             login_user($user->fetch(PDO::FETCH_ASSOC));
             unset($_SESSION['pending_login']);
         }

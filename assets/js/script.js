@@ -216,11 +216,246 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 
-/* ── DOMContentLoaded bootstrap ── */
-document.addEventListener('DOMContentLoaded', () => {
+/* ── Page transitions ── */
+function initPageTransitions() {
+    const links = document.querySelectorAll('a[href^="/"], a[href^="./"], a[href^="../"]');
+    links.forEach(link => {
+        link.addEventListener('click', (e) => {
+            if (link.target === '_blank' || link.download) return;
+            if (e.ctrlKey || e.metaKey) return;
+            
+            const href = link.getAttribute('href');
+            if (href === window.location.pathname) return;
+            
+            e.preventDefault();
+            document.body.classList.add('fade-out');
+            setTimeout(() => window.location.href = href, 200);
+        });
+    });
+}
+
+/* ── Scroll reveal animations ── */
+function initScrollReveal() {
+    const elements = document.querySelectorAll('.restaurant-card, .menu-item-card, .order-card, .stat-card');
+    if (!elements.length) return;
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.animation = 'fadeInUp 0.6s ease-out forwards';
+                    entry.target.style.opacity = '0';
+                }, index * 50);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    
+    elements.forEach(el => observer.observe(el));
+}
+
+/* ── Button press effect ── */
+function addButtonEffects() {
+    const buttons = document.querySelectorAll('button, .pill-button, .primary-btn, .secondary-btn');
+    buttons.forEach(btn => {
+        btn.addEventListener('mousedown', function() {
+            this.style.transform = 'scale(0.97)';
+        });
+        btn.addEventListener('mouseup', function() {
+            this.style.transform = '';
+        });
+        btn.addEventListener('mouseleave', function() {
+            this.style.transform = '';
+        });
+    });
+}
+
+/* ── Input focus effects ── */
+function addInputEffects() {
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.style.transform = 'scale(1.01)';
+        });
+        input.addEventListener('blur', function() {
+            this.style.transform = '';
+        });
+    });
+}
+
+/* ── Loading spinner injection ── */
+function showLoadingSpinner(text = 'Loading...') {
+    const spinner = document.createElement('div');
+    spinner.className = 'loading-overlay';
+    spinner.innerHTML = `
+        <div class="spinner">
+            <div class="spinner-ring"></div>
+            <p>${text}</p>
+        </div>
+    `;
+    document.body.appendChild(spinner);
+    return spinner;
+}
+
+function hideLoadingSpinner(spinner) {
+    if (spinner) {
+        spinner.style.opacity = '0';
+        setTimeout(() => spinner.remove(), 300);
+    }
+}
+
+/* ── Parallax scroll effect ── */
+function initParallax() {
+    const heroHeader = document.querySelector('.hero-header');
+    if (!heroHeader) return;
+    
+    window.addEventListener('scroll', () => {
+        const scrollY = window.scrollY;
+        heroHeader.style.backgroundPosition = `0 ${scrollY * 0.5}px`;
+    }, { passive: true });
+}
+
+/* ── Card hover lift effect ── */
+function addCardHoverEffects() {
+    const cards = document.querySelectorAll('.restaurant-card, .menu-item-card, .order-card, .cart-item-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseover', function() {
+            this.style.transform = 'translateY(-6px)';
+            this.style.boxShadow = 'var(--shadow-lg)';
+        });
+        card.addEventListener('mouseout', function() {
+            this.style.transform = '';
+            this.style.boxShadow = '';
+        });
+    });
+}
+
+/* ── Count up animation for numbers ── */
+function animateCountUp(element, target, duration = 1000) {
+    if (!element) return;
+    let current = 0;
+    const increment = target / (duration / 50);
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            element.textContent = Math.floor(target);
+            clearInterval(timer);
+        } else {
+            element.textContent = Math.floor(current);
+        }
+    }, 50);
+}
+
+/* ── Init animations on page load ── */
+function initAllAnimations() {
+    initPageTransitions();
+    initScrollReveal();
+    addButtonEffects();
+    addInputEffects();
+    addCardHoverEffects();
+    initParallax();
+}
+
+/* ── Google OAuth Handler ── */
+function initGoogleLogin(mode) {
+    // Show loading indicator
+    const btn = mode === 'login' ? document.getElementById('google-login-btn') : document.getElementById('google-signup-btn');
+    if (btn) {
+        const origText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinning">↻</span> Connecting...';
+    }
+    
+    // Simulate Google OAuth flow (replace with actual OAuth library)
+    // For production, integrate with Google Sign-In JavaScript library:
+    // https://developers.google.com/identity/sign-in/web/sign-in
+    
+    window.handleGoogleSignIn = function(response) {
+        const token = response.credential;
+        
+        // Send token to backend
+        fetch('/api/google-auth.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                token: token,
+                mode: mode,
+                latitude: document.getElementById(mode === 'login' ? 'login-lat' : 'reg-lat').value,
+                longitude: document.getElementById(mode === 'login' ? 'login-lng' : 'reg-lng').value,
+                location_name: document.getElementById(mode === 'login' ? 'login-loc' : 'reg-loc').value
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Welcome! ✓', 'success');
+                setTimeout(() => {
+                    window.location.href = data.redirect || '/customer/dashboard.php';
+                }, 500);
+            } else {
+                showToast(data.message || 'Authentication failed', 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origText;
+                }
+            }
+        })
+        .catch(err => {
+            showToast('Connection error', 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            }
+        });
+    };
+    
+    // Open Google Sign-In (requires Google SDK to be loaded)
+    // For testing/demo, you can simulate with prompt
+    showToast('Google Sign-In will open in a popup...', 'info');
+}
+
+/* ── Location capture ── */
+function captureLocation(latId, lngId, locId, textId) {
+    const textEl = document.getElementById(textId);
+    if (!navigator.geolocation) {
+        if (textEl) textEl.textContent = 'Location not supported';
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(
+        async pos => {
+            const { latitude, longitude } = pos.coords;
+            document.getElementById(latId).value  = latitude;
+            document.getElementById(lngId).value  = longitude;
+            try {
+                const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+                const data = await res.json();
+                const name = data.address?.suburb || data.address?.city_district || data.address?.city || 'Your location';
+                document.getElementById(locId).value = name;
+                if (textEl) textEl.textContent = '📍 ' + name;
+            } catch {
+                document.getElementById(locId).value = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                if (textEl) textEl.textContent = '📍 Location detected';
+            }
+        },
+        err => {
+            if (textEl) textEl.textContent = err.code === 1 ? '📍 Location denied' : '📍 Could not detect';
+        },
+        { timeout: 8000, maximumAge: 60000 }
+    );
+}
+
+/* ── Enhanced DOMContentLoaded bootstrap ── */
+const originalDOMContentLoaded = () => {
     /* Modal triggers */
-    document.getElementById('open-login')    ?.addEventListener('click', () => openModal('login-modal'));
-    document.getElementById('open-register') ?.addEventListener('click', () => openModal('register-modal'));
+    document.getElementById('open-login')    ?.addEventListener('click', () => {
+        openModal('login-modal');
+        captureLocation('login-lat', 'login-lng', 'login-loc', 'login-location-text');
+    });
+    document.getElementById('open-register') ?.addEventListener('click', () => {
+        openModal('register-modal');
+        captureLocation('reg-lat', 'reg-lng', 'reg-loc', 'reg-location-text');
+    });
     document.getElementById('close-login')   ?.addEventListener('click', () => closeModal('login-modal'));
     document.getElementById('close-register')?.addEventListener('click', () => closeModal('register-modal'));
 
@@ -235,9 +470,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btn.dataset.target === 'register') {
                 closeModal('login-modal');
                 openModal('register-modal');
+                captureLocation('reg-lat', 'reg-lng', 'reg-loc', 'reg-location-text');
             } else {
                 closeModal('register-modal');
                 openModal('login-modal');
+                captureLocation('login-lat', 'login-lng', 'login-loc', 'login-location-text');
             }
         });
     });
@@ -252,4 +489,9 @@ document.addEventListener('DOMContentLoaded', () => {
     /* Order tracking auto-start */
     const trackEl = document.querySelector('[data-order-id]');
     if (trackEl) startOrderTracking(trackEl.dataset.orderId);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    originalDOMContentLoaded();
+    initAllAnimations();
 });

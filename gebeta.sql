@@ -21,6 +21,9 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     role ENUM('customer', 'restaurant', 'admin') DEFAULT 'customer',
     status ENUM('active', 'suspended') DEFAULT 'active',
+    latitude DECIMAL(10,7) DEFAULT NULL,
+    longitude DECIMAL(10,7) DEFAULT NULL,
+    location_name VARCHAR(255) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
