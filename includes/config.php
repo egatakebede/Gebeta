@@ -10,7 +10,15 @@ if (file_exists($envFile)) {
     }
 }
 
-define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
+// Parse DB_HOST to handle host:port format
+$dbHost = getenv('DB_HOST') ?: '127.0.0.1';
+$dbPort = 3306;
+if (str_contains($dbHost, ':')) {
+    [$dbHost, $dbPort] = explode(':', $dbHost, 2);
+}
+
+define('DB_HOST', $dbHost);
+define('DB_PORT', $dbPort);
 define('DB_NAME', getenv('DB_NAME') ?: 'gebeta');
 define('DB_USER', getenv('DB_USER') ?: 'gebeta');
 define('DB_PASS', getenv('DB_PASS') ?: '');

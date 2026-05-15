@@ -15,15 +15,15 @@ function redirect($url) {
 }
 
 function flash_set($key, $message) {
-    if (!isset($_SESSION)) {
-        session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+        @session_start();
     }
     $_SESSION['flash'][$key] = $message;
 }
 
 function flash_get($key) {
-    if (!isset($_SESSION)) {
-        session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+        @session_start();
     }
     if (!empty($_SESSION['flash'][$key])) {
         $message = $_SESSION['flash'][$key];
