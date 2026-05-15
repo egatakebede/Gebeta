@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/db.php';
+// Don't require db.php here to avoid circular dependency
+// Files that need $pdo should require db.php directly
 
 function sanitize($value) {
     return htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
