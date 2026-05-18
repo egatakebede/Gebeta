@@ -4,7 +4,11 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-require_once __DIR__ . '/includes/auth.php';
+try {
+    require_once __DIR__ . '/includes/auth.php';
+} catch (Exception $e) {
+    die('Error loading auth: ' . $e->getMessage());
+}
 
 if (is_logged_in()) {
     $role = $_SESSION['user']['role'];
@@ -158,16 +162,19 @@ if (is_logged_in()) {
     <script>
     // Initialize Google Sign-In
     window.onload = function() {
-        google.accounts.id.initialize({
-            client_id: '1234567890-abcdefghijk.apps.googleusercontent.com', // Replace with your Google Client ID
-            callback: handleCredentialResponse
-        });
-        
-        // Render login button
-        google.accounts.id.renderButton(
-            document.getElementById('google-login-btn'),
-            { theme: 'outline', size: 'large' }
-        );
+        const clientId = '<?php echo GOOGLE_CLIENT_ID; ?>';
+        if (clientId) {
+            google.accounts.id.initialize({
+                client_id: clientId,
+                callback: handleCredentialResponse
+            });
+            
+            // Render login button
+            google.accounts.id.renderButton(
+                document.getElementById('google-login-btn'),
+                { theme: 'outline', size: 'large' }
+            );
+        }
     };
 
     function handleCredentialResponse(response) {
