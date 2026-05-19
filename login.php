@@ -28,17 +28,12 @@ if ($user['status'] === 'suspended') {
     redirect('/index.php');
 }
 
-// Store pending login in session
-$_SESSION['pending_login'] = [
-    'id'            => $user['id'],
-    'email'         => $user['email'],
-    'name'          => $user['name'],
-    'latitude'      => is_numeric($_POST['latitude'] ?? '')  ? (float)$_POST['latitude']  : null,
-    'longitude'     => is_numeric($_POST['longitude'] ?? '') ? (float)$_POST['longitude'] : null,
-    'location_name' => sanitize($_POST['location_name'] ?? ''),
-];
+// Update location if provided
+if (is_numeric($_POST['latitude'] ?? '') && is_numeric($_POST['longitude'] ?? '')) {
+    $pdo->prepare('UPDATE users SET latitude = ?, longitude = ?, location_name = ? WHERE id = ?')
+        ->execute([(float)$_POST['latitude'], (float)$_POST['longitude'], sanitize($_POST['location_name'] ?? ''), $user['id']]);
+}
 
-// Send OTP email (OTP is stored in DB regardless of email status)
-send_otp_email($user['email'], $user['name'], 'login');
-
-redirect('/verify.php?purpose=login');
+// Login user directly without OTP
+login_user($user);
+redirect('/index.php');

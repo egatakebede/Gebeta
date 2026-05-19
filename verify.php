@@ -2,13 +2,10 @@
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
 
-$purpose = in_array($_GET['purpose'] ?? '', ['register', 'login', 'reset'], true) ? $_GET['purpose'] : null;
+$purpose = in_array($_GET['purpose'] ?? '', ['register', 'reset'], true) ? $_GET['purpose'] : null;
 
 // Guard: must have a pending session for this purpose
 if ($purpose === 'register' && empty($_SESSION['pending_register'])) {
-    redirect('/index.php');
-}
-if ($purpose === 'login' && empty($_SESSION['pending_login'])) {
     redirect('/index.php');
 }
 if ($purpose === 'reset' && empty($_SESSION['pending_reset'])) {
@@ -20,7 +17,7 @@ if (!$purpose) {
 
 $email = $purpose === 'register'
     ? $_SESSION['pending_register']['email']
-    : ($purpose === 'login' ? $_SESSION['pending_login']['email'] : $_SESSION['pending_reset']['email']);
+    : $_SESSION['pending_reset']['email'];
 
 $error = '';
 
@@ -45,17 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             login_user($user->fetch(PDO::FETCH_ASSOC));
             unset($_SESSION['pending_register']);
             redirect('/select-role.php');
-        } elseif ($purpose === 'login') {
-            $p = $_SESSION['pending_login'];
-            if ($p['latitude'] && $p['longitude']) {
-                $pdo->prepare('UPDATE users SET latitude = ?, longitude = ?, location_name = ? WHERE id = ?')
-                    ->execute([$p['latitude'], $p['longitude'], $p['location_name'], $p['id']]);
-            }
-            $user = $pdo->prepare('SELECT * FROM users WHERE id = ?');
-            $user->execute([$p['id']]);
-            login_user($user->fetch(PDO::FETCH_ASSOC));
-            unset($_SESSION['pending_login']);
-            redirect('/index.php');
         } else {
             $_SESSION['reset_verified'] = [
                 'user_id' => $_SESSION['pending_reset']['user_id']
@@ -67,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $maskedEmail = preg_replace('/(?<=.{2}).(?=.*@)/u', '*', $email);
-$title = $purpose === 'register' ? 'Verify your email' : ($purpose === 'reset' ? 'Reset your password' : 'Check your email');
+$title = $purpose === 'register' ? 'Verify your email' : 'Reset your password';
 ?><!DOCTYPE html>
 <html lang="en">
 <head>
