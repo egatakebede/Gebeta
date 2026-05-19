@@ -36,4 +36,12 @@ if (is_numeric($_POST['latitude'] ?? '') && is_numeric($_POST['longitude'] ?? ''
 
 // Login user directly without OTP
 login_user($user);
-redirect('/index.php');
+
+// Redirect based on role
+if ($user['role'] === 'restaurant') {
+    redirect('/restaurant/dashboard.php');
+} elseif ($user['role'] === 'admin') {
+    redirect('/admin/dashboard.php');
+} else {
+    redirect('/customer/dashboard.php');
+}
