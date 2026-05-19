@@ -68,6 +68,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $maskedEmail = preg_replace('/(?<=.{2}).(?=.*@)/u', '*', $email);
 $title = $purpose === 'register' ? 'Verify your email' : ($purpose === 'reset' ? 'Reset your password' : 'Check your email');
+
+// DEBUG: Show OTP for testing (remove in production)
+$debugOtp = null;
+$stmt = $pdo->prepare('SELECT code FROM otps WHERE email = ? AND purpose = ? AND used = 0 AND expires_at > NOW() ORDER BY id DESC LIMIT 1');
+$stmt->execute([$email, $purpose]);
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
+if ($row) $debugOtp = $row['code'];
 ?><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -164,6 +171,12 @@ $title = $purpose === 'register' ? 'Verify your email' : ($purpose === 'reset' ?
             <div class="verify-icon">📧</div>
             <h1><?= $title ?></h1>
             <p>We sent a 6-digit code to<br><strong><?= htmlspecialchars($maskedEmail) ?></strong></p>
+
+            <?php if ($debugOtp): ?>
+                <div style="background:#FFF3E0;border:2px solid #FF9800;color:#E65100;border-radius:12px;padding:12px;margin-bottom:16px;font-size:13px;">
+                    <strong>🔧 DEBUG MODE:</strong> Your OTP is <strong style="font-size:18px;letter-spacing:2px;"><?= $debugOtp ?></strong>
+                </div>
+            <?php endif; ?>
 
             <?php if ($error): ?>
                 <div class="error-msg"><?= htmlspecialchars($error) ?></div>
