@@ -28,6 +28,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 }
 
 $filter = $_GET['filter'] ?? 'all';
+
+// Get counts for each status
+$stmt = $pdo->query('SELECT status, COUNT(*) as count FROM restaurants GROUP BY status');
+$counts = ['all' => 0, 'pending' => 0, 'active' => 0, 'suspended' => 0];
+while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $counts[$row['status']] = $row['count'];
+    $counts['all'] += $row['count'];
+}
+
+// Build query based on filter
 $query = 'SELECT r.*, u.name AS owner_name, u.email AS owner_email FROM restaurants r JOIN users u ON r.user_id = u.id';
 if ($filter === 'pending') {
     $query .= ' WHERE r.status = "pending"';
@@ -153,10 +163,10 @@ $restaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     <main class="page-content">
         <div class="filter-tabs">
-            <a href="?filter=all" class="filter-tab <?= $filter === 'all' ? 'active' : '' ?>">All (<?= count($restaurants) ?>)</a>
-            <a href="?filter=pending" class="filter-tab <?= $filter === 'pending' ? 'active' : '' ?>">Pending</a>
-            <a href="?filter=active" class="filter-tab <?= $filter === 'active' ? 'active' : '' ?>">Active</a>
-            <a href="?filter=suspended" class="filter-tab <?= $filter === 'suspended' ? 'active' : '' ?>">Suspended</a>
+            <a href="?filter=all" class="filter-tab <?= $filter === 'all' ? 'active' : '' ?>">All (<?= $counts['all'] ?>)</a>
+            <a href="?filter=pending" class="filter-tab <?= $filter === 'pending' ? 'active' : '' ?>">Pending (<?= $counts['pending'] ?>)</a>
+            <a href="?filter=active" class="filter-tab <?= $filter === 'active' ? 'active' : '' ?>">Active (<?= $counts['active'] ?>)</a>
+            <a href="?filter=suspended" class="filter-tab <?= $filter === 'suspended' ? 'active' : '' ?>">Suspended (<?= $counts['suspended'] ?>)</a>
         </div>
         
         <?php if (empty($restaurants)): ?>
