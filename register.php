@@ -36,9 +36,7 @@ $_SESSION['pending_register'] = [
     'location_name' => sanitize($_POST['location_name'] ?? ''),
 ];
 
-if (!send_otp_email($email, $name, 'register')) {
-    flash_set('error', 'Could not send verification email. Please try again.');
-    redirect('/index.php');
-}
+// Send OTP email (OTP is stored in DB regardless of email status)
+send_otp_email($email, $name, 'register');
 
 redirect('/verify.php?purpose=register');

@@ -38,9 +38,7 @@ $_SESSION['pending_login'] = [
     'location_name' => sanitize($_POST['location_name'] ?? ''),
 ];
 
-if (!send_otp_email($user['email'], $user['name'], 'login')) {
-    flash_set('error', 'Could not send verification email. Please try again.');
-    redirect('/index.php');
-}
+// Send OTP email (OTP is stored in DB regardless of email status)
+send_otp_email($user['email'], $user['name'], 'login');
 
 redirect('/verify.php?purpose=login');

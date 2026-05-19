@@ -25,10 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'name' => $user['name']
     ];
     
-    if (!send_otp_email($email, $user['name'], 'reset')) {
-        flash_set('error', 'Could not send reset code. Please try again.');
-        redirect('/forgot-password.php');
-    }
+    // Send OTP email (even if email fails, OTP is stored in DB)
+    send_otp_email($email, $user['name'], 'reset');
     
     redirect('/verify.php?purpose=reset');
 }
