@@ -36,6 +36,7 @@ $newRestaurants = $pdo->query("SELECT id, name, cuisine_type, location, rating F
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#FC8019">
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/landing-hero-fix.css">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>

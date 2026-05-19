@@ -1,0 +1,78 @@
+/* Landing Page Hero Adjustments - Fit content on first screen */
+.hero-header {
+    min-height: auto !important;
+    padding: 20px 20px 40px !important;
+}
+
+.hero-body {
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+
+.hero-copy h1 {
+    font-size: clamp(36px, 4.5vw, 56px) !important;
+    margin-bottom: 16px !important;
+}
+
+.hero-copy p {
+    font-size: 16px !important;
+    margin-bottom: 24px !important;
+}
+
+.hero-search-form {
+    margin-bottom: 16px !important;
+}
+
+.hero-visual {
+    max-height: 400px;
+}
+
+.hero-card-image--big {
+    max-height: 280px !important;
+}
+
+.hero-card-image--small {
+    max-height: 180px !important;
+}
+
+/* Adjust feature cards spacing */
+.hero-feature-row {
+    margin-top: 40px !important;
+    padding-top: 40px !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .hero-header {
+        padding: 16px 16px 32px !important;
+    }
+    
+    .hero-body {
+        padding-top: 24px;
+        padding-bottom: 24px;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    .hero-copy h1 {
+        font-size: 32px !important;
+        margin-bottom: 12px !important;
+    }
+    
+    .hero-copy p {
+        font-size: 15px !important;
+        margin-bottom: 20px !important;
+    }
+    
+    .hero-visual {
+        max-height: 300px;
+    }
+    
+    .hero-card-image--big {
+        max-height: 220px !important;
+    }
+    
+    .hero-card-image--small {
+        max-height: 140px !important;
+    }
+}
