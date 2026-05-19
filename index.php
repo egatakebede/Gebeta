@@ -26,7 +26,6 @@ if (is_logged_in()) {
 
 require_once __DIR__ . '/includes/db.php';
 $topRestaurants = $pdo->query("SELECT id, name, cuisine_type, location, rating FROM restaurants WHERE status = 'active' ORDER BY rating DESC LIMIT 6")->fetchAll(PDO::FETCH_ASSOC);
-$newRestaurants = $pdo->query("SELECT id, name, cuisine_type, location, rating FROM restaurants WHERE status = 'active' ORDER BY created_at DESC LIMIT 4")->fetchAll(PDO::FETCH_ASSOC);
 ?><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -158,38 +157,7 @@ $newRestaurants = $pdo->query("SELECT id, name, cuisine_type, location, rating F
             </div>
         </section>
 
-        <section class="restaurant-showcase">
-            <div class="section-heading">
-                <div>
-                    <p class="eyebrow">New on Gebeta</p>
-                    <h2>Recently added restaurants</h2>
-                </div>
-            </div>
-            <div class="cards-grid">
-                <?php if (empty($newRestaurants)): ?>
-                    <div class="empty-state">No new restaurants are available at the moment.</div>
-                <?php endif; ?>
-                <?php foreach ($newRestaurants as $restaurant): ?>
-                    <a href="/customer/restaurant.php?id=<?= htmlspecialchars($restaurant['id']) ?>" class="restaurant-card">
-                        <div class="restaurant-image">
-                            <img src="/assets/images/food/tibs.jpg" alt="<?= htmlspecialchars($restaurant['name']) ?>">
-                            <div class="restaurant-overlay"></div>
-                            <div class="restaurant-labels">
-                                <span class="offer-pill">New</span>
-                            </div>
-                        </div>
-                        <div class="restaurant-card-content">
-                            <h3><?= htmlspecialchars($restaurant['name']) ?></h3>
-                            <p><?= htmlspecialchars($restaurant['cuisine_type']) ?> · <?= htmlspecialchars($restaurant['location']) ?></p>
-                            <div class="restaurant-details">
-                                <span>Fresh arrival</span>
-                                <span><?= htmlspecialchars(number_format($restaurant['rating'], 1)) ?> rating</span>
-                            </div>
-                        </div>
-                    </a>
-                <?php endforeach; ?>
-            </div>
-        </section>
+
     </main>
 
     <div class="modal-overlay" id="modal-overlay"></div>
