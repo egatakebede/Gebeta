@@ -3,6 +3,9 @@ require_once __DIR__ . '/../includes/auth.php';
 require_login(['customer']);
 require_once __DIR__ . '/../includes/db.php';
 
+$userName = $_SESSION['user']['name'];
+$userInitials = strtoupper(substr($userName, 0, 1) . (strpos($userName, ' ') ? substr($userName, strpos($userName, ' ') + 1, 1) : ''));
+
 $stmt = $pdo->query('SELECT id, name, description, cuisine_type, location, rating FROM restaurants WHERE status = "active" ORDER BY rating DESC LIMIT 8');
 $restaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $cartCount = get_cart_count();

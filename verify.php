@@ -2,7 +2,7 @@
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
 
-$purpose = in_array($_GET['purpose'] ?? '', ['register', 'login'], true) ? $_GET['purpose'] : null;
+$purpose = in_array($_GET['purpose'] ?? '', ['register', 'login', 'reset'], true) ? $_GET['purpose'] : null;
 
 // Guard: must have a pending session for this purpose
 if ($purpose === 'register' && empty($_SESSION['pending_register'])) {
@@ -11,13 +11,16 @@ if ($purpose === 'register' && empty($_SESSION['pending_register'])) {
 if ($purpose === 'login' && empty($_SESSION['pending_login'])) {
     redirect('/index.php');
 }
+if ($purpose === 'reset' && empty($_SESSION['pending_reset'])) {
+    redirect('/forgot-password.php');
+}
 if (!$purpose) {
     redirect('/index.php');
 }
 
 $email = $purpose === 'register'
     ? $_SESSION['pending_register']['email']
-    : $_SESSION['pending_login']['email'];
+    : ($purpose === 'login' ? $_SESSION['pending_login']['email'] : $_SESSION['pending_reset']['email']);
 
 $error = '';
 
@@ -41,9 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user->execute([$userId]);
             login_user($user->fetch(PDO::FETCH_ASSOC));
             unset($_SESSION['pending_register']);
-        } else {
+            redirect('/select-role.php');
+        } elseif ($purpose === 'login') {
             $p = $_SESSION['pending_login'];
-            // Update location if provided
             if ($p['latitude'] && $p['longitude']) {
                 $pdo->prepare('UPDATE users SET latitude = ?, longitude = ?, location_name = ? WHERE id = ?')
                     ->execute([$p['latitude'], $p['longitude'], $p['location_name'], $p['id']]);
@@ -52,13 +55,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user->execute([$p['id']]);
             login_user($user->fetch(PDO::FETCH_ASSOC));
             unset($_SESSION['pending_login']);
+            redirect('/index.php');
+        } else {
+            $_SESSION['reset_verified'] = [
+                'user_id' => $_SESSION['pending_reset']['user_id']
+            ];
+            unset($_SESSION['pending_reset']);
+            redirect('/reset-password.php');
         }
-        redirect('/index.php');
     }
 }
 
 $maskedEmail = preg_replace('/(?<=.{2}).(?=.*@)/u', '*', $email);
-$title = $purpose === 'register' ? 'Verify your email' : 'Check your email';
+$title = $purpose === 'register' ? 'Verify your email' : ($purpose === 'reset' ? 'Reset your password' : 'Check your email');
 ?><!DOCTYPE html>
 <html lang="en">
 <head>

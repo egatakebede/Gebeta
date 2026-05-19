@@ -103,14 +103,16 @@ function send_otp_email(string $email, string $name, string $purpose): bool {
     $pdo->prepare('INSERT INTO otps (email, code, purpose, expires_at) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))')
         ->execute([$email, $code, $purpose]);
 
-    $subject = $purpose === 'register' ? 'Verify your Gebeta account' : 'Your Gebeta login code';
+    $subject = $purpose === 'register' ? 'Verify your Gebeta account' : ($purpose === 'reset' ? 'Reset your Gebeta password' : 'Your Gebeta login code');
+    $message = $purpose === 'reset' ? 'Use this code to reset your password:' : 'Your one-time verification code is:';
+    
     $html = '
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;">
             <h2 style="color:#FC8019;margin-bottom:8px;">🍽️ Gebeta</h2>
             <p style="color:#282C3F;font-size:16px;">Hi ' . htmlspecialchars($name) . ',</p>
-            <p style="color:#686B78;">Your one-time verification code is:</p>
+            <p style="color:#686B78;">' . $message . '</p>
             <div style="font-size:40px;font-weight:700;letter-spacing:12px;color:#282C3F;margin:24px 0;text-align:center;">' . $code . '</div>
-            <p style="color:#686B78;font-size:13px;">This code expires in <strong>10 minutes</strong>. Do not share it with anyone.</p>
+            <p style="color:#686B78;font-size:13px;">This code expires in <strong>15 minutes</strong>. Do not share it with anyone.</p>
             <hr style="border:none;border-top:1px solid #E8E8E8;margin:24px 0;">
             <p style="color:#93959F;font-size:12px;">If you did not request this, you can safely ignore this email.</p>
         </div>';
@@ -137,7 +139,12 @@ function send_otp_email(string $email, string $name, string $purpose): bool {
     $status   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    return $status >= 200 && $status < 300;
+    if ($status < 200 || $status >= 300) {
+        error_log("Brevo API Error [{$status}]: {$response}");
+        return false;
+    }
+    
+    return true;
 }
 
 function verify_otp(string $email, string $code, string $purpose): bool {

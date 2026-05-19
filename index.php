@@ -12,6 +12,18 @@ try {
 
 if (is_logged_in()) {
     $role = $_SESSION['user']['role'];
+    
+    // Check if user needs to select role
+    if ($role === 'customer') {
+        $stmt = $pdo->prepare('SELECT role FROM users WHERE id = ?');
+        $stmt->execute([$_SESSION['user']['id']]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($user && $user['role'] === 'customer') {
+            // New user, redirect to role selection
+            redirect('/select-role.php');
+        }
+    }
+    
     if ($role === 'restaurant') {
         redirect('/restaurant/dashboard.php');
     }
@@ -108,6 +120,7 @@ if (is_logged_in()) {
             <input type="email" name="email" placeholder="you@example.com" required>
             <label>Password</label>
             <input type="password" name="password" placeholder="••••••••" required>
+            <a href="/forgot-password.php" style="font-size:13px;color:var(--primary-orange);text-decoration:none;display:block;margin-top:-8px;margin-bottom:12px;">Forgot password?</a>
             <input type="hidden" name="latitude" id="login-lat" value="7.0621">
             <input type="hidden" name="longitude" id="login-lng" value="38.4760">
             <input type="hidden" name="location_name" id="login-loc" value="Hawassa, Ethiopia">

@@ -1995,3 +1995,17 @@ body:has(.bottom-nav) .page-content {
 .cart-item-card:hover .item-avatar img {
     transform: scale(1.05);
 }
+
+
+/* Role selection styling */
+input[type="radio"]:checked + span {
+    font-weight: 700;
+    color: var(--primary-orange);
+}
+input[type="radio"]:checked {
+    accent-color: var(--primary-orange);
+}
+label:has(input[type="radio"]:checked) {
+    border-color: var(--primary-orange) !important;
+    background: var(--bg-orange-tint);
+}
