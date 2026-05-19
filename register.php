@@ -10,7 +10,7 @@ $name     = sanitize($_POST['name'] ?? '');
 $phone    = sanitize($_POST['phone'] ?? '');
 $email    = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
 $password = trim($_POST['password'] ?? '');
-$role     = in_array($_POST['role'] ?? 'customer', ['customer', 'restaurant'], true) ? $_POST['role'] : 'customer';
+// Don't set role during registration - user will choose after verification
 
 if (!$name || !$phone || !$email || strlen($password) < 6) {
     flash_set('error', 'Please complete all fields. Password must be at least 6 characters.');
@@ -30,7 +30,7 @@ $_SESSION['pending_register'] = [
     'phone'         => $phone,
     'email'         => $email,
     'password'      => password_hash($password, PASSWORD_DEFAULT),
-    'role'          => $role,
+    'role'          => 'customer', // Default role, will be changed in select-role page
     'latitude'      => is_numeric($_POST['latitude'] ?? '')  ? (float)$_POST['latitude']  : null,
     'longitude'     => is_numeric($_POST['longitude'] ?? '') ? (float)$_POST['longitude'] : null,
     'location_name' => sanitize($_POST['location_name'] ?? ''),
