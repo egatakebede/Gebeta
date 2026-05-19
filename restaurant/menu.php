@@ -10,6 +10,11 @@ if (!$restaurant) {
     redirect('/');
 }
 
+// Redirect to dashboard if restaurant is not active
+if ($restaurant['status'] !== 'active') {
+    redirect('/restaurant/dashboard.php');
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
     $name = sanitize($_POST['name'] ?? '');

@@ -12,6 +12,12 @@ if (!$restaurant) {
     redirect('/restaurant/setup.php');
 }
 
+// If restaurant is pending or suspended, show limited dashboard
+if ($restaurant['status'] === 'pending' || $restaurant['status'] === 'suspended') {
+    include __DIR__ . '/pending-dashboard.php';
+    exit;
+}
+
 $stmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE restaurant_id = ? AND DATE(created_at) = CURDATE()');
 $stmt->execute([$restaurant['id']]);
 $todayOrders = $stmt->fetchColumn();
