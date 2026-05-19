@@ -42,13 +42,20 @@
             margin-bottom: 24px;
         }
         .status-box {
-            background: <?= $restaurant['status'] === 'pending' ? '#FFF3E0' : '#FFEBEE' ?>;
-            border: 2px solid <?= $restaurant['status'] === 'pending' ? '#FF9800' : '#F44336' ?>;
-            color: <?= $restaurant['status'] === 'pending' ? '#E65100' : '#C62828' ?>;
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 24px;
             font-weight: 600;
+        }
+        .status-box.pending {
+            background: #FFF3E0;
+            border: 2px solid #FF9800;
+            color: #E65100;
+        }
+        .status-box.suspended {
+            background: #FFEBEE;
+            border: 2px solid #F44336;
+            color: #C62828;
         }
         .info-list {
             background: var(--bg-gray);
@@ -106,7 +113,7 @@
                 <?php endif; ?>
             </p>
             
-            <div class="status-box">
+            <div class="status-box <?= $restaurant['status'] === 'pending' ? 'pending' : 'suspended' ?>">
                 <?= $restaurant['status'] === 'pending' ? '⏰ Pending Admin Approval' : '⚠️ Account Suspended' ?>
             </div>
             
