@@ -13,23 +13,14 @@ try {
 if (is_logged_in()) {
     $role = $_SESSION['user']['role'];
     
-    // Check if user needs to select role
-    if ($role === 'customer') {
-        $stmt = $pdo->prepare('SELECT role FROM users WHERE id = ?');
-        $stmt->execute([$_SESSION['user']['id']]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($user && $user['role'] === 'customer') {
-            // New user, redirect to role selection
-            redirect('/select-role.php');
-        }
-    }
-    
+    // Redirect based on role
     if ($role === 'restaurant') {
         redirect('/restaurant/dashboard.php');
     }
     if ($role === 'admin') {
         redirect('/admin/dashboard.php');
     }
+    // Customer role
     redirect('/customer/dashboard.php');
 }
 ?><!DOCTYPE html>
