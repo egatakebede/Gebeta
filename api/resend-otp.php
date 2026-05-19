@@ -18,6 +18,10 @@ if (!empty($_SESSION['pending_register'])) {
     $email   = $_SESSION['pending_login']['email'];
     $name    = $_SESSION['pending_login']['name'];
     $purpose = 'login';
+} elseif (!empty($_SESSION['pending_reset'])) {
+    $email   = $_SESSION['pending_reset']['email'];
+    $name    = $_SESSION['pending_reset']['name'];
+    $purpose = 'reset';
 } else {
     echo json_encode(['success' => false, 'message' => 'Session expired. Please start again.']);
     return;

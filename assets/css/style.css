@@ -2009,3 +2009,23 @@ label:has(input[type="radio"]:checked) {
     border-color: var(--primary-orange) !important;
     background: var(--bg-orange-tint);
 }
+
+
+/* Restaurant bottom bar active states */
+.bottom-bar a.active {
+    background: linear-gradient(135deg, var(--primary-orange), var(--primary-dark));
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(252, 128, 25, 0.3);
+}
+
+.bottom-bar a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+}
+
+.bottom-bar a span:first-child {
+    font-size: 20px;
+}

@@ -42,8 +42,9 @@ $cartCount = get_cart_count();
 </head>
 <body>
     <header class="page-header">
-        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;gap:8px;">
             <a class="pill-button" href="/customer/dashboard.php">← Back</a>
+            <a class="pill-button" href="/customer/restaurant-feed.php?id=<?= $id ?>">📱 Feed</a>
             <a class="pill-button" href="/customer/cart.php" style="background:var(--primary-orange);color:#fff;position:relative;">
                 🛒 <span class="cart-count nav-badge" style="position:relative;top:auto;right:auto;display:inline-flex;margin-left:4px;"><?= $cartCount ?: '' ?></span>
             </a>

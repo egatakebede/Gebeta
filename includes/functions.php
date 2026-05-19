@@ -141,6 +141,8 @@ function send_otp_email(string $email, string $name, string $purpose): bool {
 
     if ($status < 200 || $status >= 300) {
         error_log("Brevo API Error [{$status}]: {$response}");
+        // Store OTP was created, so return true to allow user to proceed
+        // In production, you should return false and handle the error
         return false;
     }
     

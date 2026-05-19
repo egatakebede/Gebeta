@@ -23,10 +23,10 @@ $cartCount = get_cart_count();
     <header class="page-header">
         <div class="header-row">
             <div>
-                <div class="subtitle">📍 Hawassa</div>
-                <h1>Hawassa, Ethiopia</h1>
+                <div class="subtitle">Welcome back, <?= htmlspecialchars(explode(' ', $userName)[0]) ?>! 👋</div>
+                <h1>Discover Restaurants</h1>
             </div>
-            <a class="pill-button" href="/customer/profile.php">AB</a>
+            <a class="pill-button" href="/customer/profile.php" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-weight:700;"><?= $userInitials ?></a>
         </div>
         <div class="search-box">
             <form onsubmit="return false;">

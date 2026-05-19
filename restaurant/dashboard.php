@@ -6,8 +6,10 @@ require_once __DIR__ . '/../includes/db.php';
 $stmt = $pdo->prepare('SELECT * FROM restaurants WHERE user_id = ? LIMIT 1');
 $stmt->execute([$_SESSION['user']['id']]);
 $restaurant = $stmt->fetch(PDO::FETCH_ASSOC);
+
 if (!$restaurant) {
-    redirect('/');
+    // New restaurant owner - redirect to setup
+    redirect('/restaurant/setup.php');
 }
 
 $stmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE restaurant_id = ? AND DATE(created_at) = CURDATE()');
@@ -26,7 +28,6 @@ $pendingOrders = $stmt->fetchColumn();
 $stmt = $pdo->prepare('SELECT id, order_number, status, created_at FROM orders WHERE restaurant_id = ? ORDER BY created_at DESC LIMIT 5');
 $stmt->execute([$restaurant['id']]);
 $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$cartCount = get_cart_count();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -38,8 +39,11 @@ $cartCount = get_cart_count();
 </head>
 <body>
     <header class="page-header">
-        <h1><?= htmlspecialchars($restaurant['name']) ?></h1>
-        <a class="pill-button" href="/restaurant/menu.php">Menu</a>
+        <h1>🏪 <?= htmlspecialchars($restaurant['name']) ?></h1>
+        <div style="display:flex;gap:8px;">
+            <span class="status-badge" style="background:<?= $restaurant['status'] === 'active' ? '#E8F5E9' : '#FFF3E0' ?>;color:<?= $restaurant['status'] === 'active' ? '#2E7D32' : '#F57C00' ?>"><?= ucfirst($restaurant['status']) ?></span>
+            <a class="pill-button" href="/restaurant/menu.php">Menu</a>
+        </div>
     </header>
     <main class="page-content">
         <section class="stats-grid">
@@ -66,10 +70,22 @@ $cartCount = get_cart_count();
         </section>
     </main>
     <footer class="bottom-bar">
-        <a href="/restaurant/dashboard.php">🏠 Dashboard</a>
-        <a href="/restaurant/menu.php">🍽️ Menu</a>
-        <a href="/restaurant/analytics.php">📊 Analytics</a>
-        <a href="/restaurant/profile.php">👤 Profile</a>
+        <a href="/restaurant/dashboard.php" class="<?= basename($_SERVER['PHP_SELF']) === 'dashboard.php' ? 'active' : '' ?>">
+            <span>🏠</span>
+            <span>Dashboard</span>
+        </a>
+        <a href="/restaurant/menu.php" class="<?= basename($_SERVER['PHP_SELF']) === 'menu.php' ? 'active' : '' ?>">
+            <span>🍽️</span>
+            <span>Menu</span>
+        </a>
+        <a href="/restaurant/posts.php" class="<?= basename($_SERVER['PHP_SELF']) === 'posts.php' ? 'active' : '' ?>">
+            <span>📱</span>
+            <span>Posts</span>
+        </a>
+        <a href="/restaurant/profile.php" class="<?= basename($_SERVER['PHP_SELF']) === 'profile.php' ? 'active' : '' ?>">
+            <span>👤</span>
+            <span>Profile</span>
+        </a>
     </footer>
 </body>
 </html>
