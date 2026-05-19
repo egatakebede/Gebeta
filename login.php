@@ -39,6 +39,12 @@ login_user($user);
 
 // Redirect based on role
 if ($user['role'] === 'restaurant') {
+    // Check if restaurant setup is complete
+    $stmt = $pdo->prepare('SELECT id FROM restaurants WHERE user_id = ? LIMIT 1');
+    $stmt->execute([$user['id']]);
+    if (!$stmt->fetch()) {
+        redirect('/restaurant/setup.php');
+    }
     redirect('/restaurant/dashboard.php');
 } elseif ($user['role'] === 'admin') {
     redirect('/admin/dashboard.php');
