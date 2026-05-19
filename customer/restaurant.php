@@ -6,8 +6,8 @@ require_once __DIR__ . '/../includes/db.php';
 $id = (int)($_GET['id'] ?? 0);
 if ($id <= 0) redirect('/customer/dashboard.php');
 
-$stmt = $pdo->prepare('SELECT r.*, u.name AS owner_name FROM restaurants r JOIN users u ON r.user_id = u.id WHERE r.id = ? AND r.status = "active" LIMIT 1');
-$stmt->execute([$id]);
+$stmt = $pdo->prepare('SELECT r.*, u.name AS owner_name FROM restaurants r JOIN users u ON r.user_id = u.id WHERE r.id = ? AND r.status = ? LIMIT 1');
+$stmt->execute([$id, 'active']);
 $restaurant = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$restaurant) redirect('/customer/dashboard.php');
 
@@ -44,9 +44,9 @@ $cartCount = get_cart_count();
     <header class="page-header">
         <div style="display:flex;justify-content:space-between;align-items:center;width:100%;gap:8px;">
             <a class="pill-button" href="/customer/dashboard.php">← Back</a>
-            <a class="pill-button" href="/customer/restaurant-feed.php?id=<?= $id ?>">📱 Feed</a>
+            <a class="pill-button" href="/customer/restaurant-feed.php?id=<?= $id ?>">Food Feed</a>
             <a class="pill-button" href="/customer/cart.php" style="background:var(--primary-orange);color:#fff;position:relative;">
-                🛒 <span class="cart-count nav-badge" style="position:relative;top:auto;right:auto;display:inline-flex;margin-left:4px;"><?= $cartCount ?: '' ?></span>
+                Cart <span class="cart-count nav-badge" style="position:relative;top:auto;right:auto;display:inline-flex;margin-left:4px;"><?= $cartCount ?: '' ?></span>
             </a>
         </div>
     </header>
@@ -58,15 +58,15 @@ $cartCount = get_cart_count();
                 <h1 style="font-size:24px;margin-bottom:8px;"><?= htmlspecialchars($restaurant['name']) ?></h1>
                 <p style="color:var(--gray-text);font-size:14px;margin:6px 0 12px;"><?= htmlspecialchars($restaurant['cuisine_type']) ?> • <?= htmlspecialchars($restaurant['location']) ?></p>
                 <div class="restaurant-stats" style="justify-content:center;">
-                    <span style="background:linear-gradient(135deg,#FFF5ED,#FFE8D6);color:var(--primary-orange);font-weight:700;">⭐ <?= number_format($restaurant['rating'], 1) ?></span>
-                    <span>⏱️ 38 mins</span>
-                    <span>💰 Min 300</span>
+                    <span style="background:linear-gradient(135deg,#FFF5ED,#FFE8D6);color:var(--primary-orange);font-weight:700;">Rating <?= number_format($restaurant['rating'], 1) ?></span>
+                    <span>38 mins</span>
+                    <span>Min 300 Birr</span>
                 </div>
             </div>
         </section>
 
         <section class="menu-section">
-            <h2>🍲 Menu</h2>
+            <h2>Injera Menu</h2>
             <?php if (empty($menuItems)): ?>
                 <div class="empty-state">No menu items available yet.</div>
             <?php else: ?>

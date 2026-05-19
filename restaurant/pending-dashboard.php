@@ -93,7 +93,7 @@
 </head>
 <body>
     <header class="page-header">
-        <h1>🏪 <?= htmlspecialchars($restaurant['name']) ?></h1>
+        <h1>Hawassa <?= htmlspecialchars($restaurant['name']) ?></h1>
         <span class="status-badge" style="background:<?= $restaurant['status'] === 'pending' ? '#FFF3E0' : '#FFEBEE' ?>;color:<?= $restaurant['status'] === 'pending' ? '#E65100' : '#C62828' ?>">
             <?= ucfirst($restaurant['status']) ?>
         </span>
@@ -114,24 +114,24 @@
             </p>
             
             <div class="status-box <?= $restaurant['status'] === 'pending' ? 'pending' : 'suspended' ?>">
-                <?= $restaurant['status'] === 'pending' ? '⏰ Pending Admin Approval' : '⚠️ Account Suspended' ?>
+                <?= $restaurant['status'] === 'pending' ? 'Pending Pending Admin Approval' : 'Attention Account Suspended' ?>
             </div>
             
             <div class="info-list">
                 <div class="info-item">
-                    <span>📋</span>
+                    <span>Details</span>
                     <span><strong>Restaurant:</strong> <?= htmlspecialchars($restaurant['name']) ?></span>
                 </div>
                 <div class="info-item">
-                    <span>🍽️</span>
+                    <span>Menu</span>
                     <span><strong>Cuisine:</strong> <?= htmlspecialchars($restaurant['cuisine_type']) ?></span>
                 </div>
                 <div class="info-item">
-                    <span>📍</span>
+                    <span>Location</span>
                     <span><strong>Location:</strong> <?= htmlspecialchars($restaurant['address']) ?></span>
                 </div>
                 <div class="info-item">
-                    <span>📞</span>
+                    <span>Phone</span>
                     <span><strong>Phone:</strong> <?= htmlspecialchars($restaurant['phone']) ?></span>
                 </div>
             </div>
@@ -148,11 +148,11 @@
     
     <footer class="bottom-bar">
         <a href="/restaurant/dashboard.php" class="active">
-            <span>🏠</span>
+            <span>Home</span>
             <span>Dashboard</span>
         </a>
         <a href="/restaurant/profile.php">
-            <span>👤</span>
+            <span>Profile</span>
             <span>Profile</span>
         </a>
     </footer>

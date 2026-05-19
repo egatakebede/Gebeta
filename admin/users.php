@@ -21,16 +21,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 $filter = $_GET['filter'] ?? 'all';
 $query = 'SELECT id, name, email, phone, role, status, created_at FROM users WHERE 1=1';
+$params = [];
 if ($filter === 'customer') {
-    $query .= ' AND role = "customer"';
+    $query .= ' AND role = ?';
+    $params[] = 'customer';
 } elseif ($filter === 'restaurant') {
-    $query .= ' AND role = "restaurant"';
+    $query .= ' AND role = ?';
+    $params[] = 'restaurant';
 } elseif ($filter === 'admin') {
-    $query .= ' AND role = "admin"';
+    $query .= ' AND role = ?';
+    $params[] = 'admin';
 }
 $query .= ' ORDER BY created_at DESC';
 
-$stmt = $pdo->query($query);
+if ($params) {
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
+} else {
+    $stmt = $pdo->query($query);
+}
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
@@ -106,7 +115,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     <?php if ($success = flash_get('success')): ?>
         <div style="background:#E8F5E9;border:2px solid #66BB6A;border-radius:16px;padding:16px;margin:20px;color:#2E7D32;font-weight:600;">
-            ✅ <?= htmlspecialchars($success) ?>
+            Yes <?= htmlspecialchars($success) ?>
         </div>
     <?php endif; ?>
     
@@ -132,8 +141,8 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <div>
                                     <div class="user-name"><?= htmlspecialchars($user['name']) ?></div>
                                     <div class="user-meta">📧 <?= htmlspecialchars($user['email']) ?></div>
-                                    <div class="user-meta">📞 <?= htmlspecialchars($user['phone']) ?></div>
-                                    <div class="user-meta">📅 Joined: <?= date('M d, Y', strtotime($user['created_at'])) ?></div>
+                                    <div class="user-meta">Phone <?= htmlspecialchars($user['phone']) ?></div>
+                                    <div class="user-meta">Joined Joined: <?= date('M d, Y', strtotime($user['created_at'])) ?></div>
                                 </div>
                                 <div style="text-align:right;">
                                     <span class="role-badge role-<?= $user['role'] ?>"><?= ucfirst($user['role']) ?></span>
@@ -146,9 +155,9 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <form method="post" style="margin-top:12px;">
                                     <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
                                     <?php if ($user['status'] === 'active'): ?>
-                                        <button type="submit" name="action" value="suspend" class="action-btn btn-suspend" onclick="return confirm('Suspend this user?')" style="padding:8px 16px;border-radius:12px;border:none;font-weight:600;font-size:13px;cursor:pointer;background:#FFA726;color:#fff;">⚠️ Suspend</button>
+                                        <button type="submit" name="action" value="suspend" class="action-btn btn-suspend" onclick="return confirm('Suspend this user?')" style="padding:8px 16px;border-radius:12px;border:none;font-weight:600;font-size:13px;cursor:pointer;background:#FFA726;color:#fff;">Attention Suspend</button>
                                     <?php else: ?>
-                                        <button type="submit" name="action" value="activate" class="action-btn btn-activate" style="padding:8px 16px;border-radius:12px;border:none;font-weight:600;font-size:13px;cursor:pointer;background:#66BB6A;color:#fff;">✅ Activate</button>
+                                        <button type="submit" name="action" value="activate" class="action-btn btn-activate" style="padding:8px 16px;border-radius:12px;border:none;font-weight:600;font-size:13px;cursor:pointer;background:#66BB6A;color:#fff;">Yes Activate</button>
                                     <?php endif; ?>
                                 </form>
                             <?php endif; ?>
@@ -161,11 +170,11 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     <footer class="bottom-bar">
         <a href="/admin/dashboard.php">
-            <span>🏠</span>
+            <span>Home</span>
             <span>Dashboard</span>
         </a>
         <a href="/admin/restaurants.php">
-            <span>🏪</span>
+            <span>Hawassa</span>
             <span>Restaurants</span>
         </a>
         <a href="/admin/users.php" class="active">
@@ -173,11 +182,11 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <span>Users</span>
         </a>
         <a href="/admin/orders.php">
-            <span>📦</span>
+            <span>Orders</span>
             <span>Orders</span>
         </a>
         <a href="/admin/reports.php">
-            <span>📊</span>
+            <span>Analytics</span>
             <span>Reports</span>
         </a>
     </footer>

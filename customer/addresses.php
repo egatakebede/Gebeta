@@ -28,7 +28,7 @@ $cartCount = get_cart_count();
 <body>
     <header class="page-header">
         <div class="header-row">
-            <h1>📍 Delivery Address</h1>
+            <h1>Location Delivery Address</h1>
             <a class="pill-button" href="/customer/profile.php">← Back</a>
         </div>
     </header>
@@ -45,22 +45,22 @@ $cartCount = get_cart_count();
     </main>
     <nav class="bottom-nav">
         <a href="/customer/dashboard.php" class="nav-item">
-            <span class="nav-icon">🏠</span>
+            <span class="nav-icon">Home</span>
             <span class="nav-label">Home</span>
         </a>
         <a href="/customer/cart.php" class="nav-item">
             <span class="nav-icon">
-                🛒
+                Cart
                 <?php if ($cartCount > 0): ?><span class="nav-badge"><?= $cartCount ?></span><?php endif; ?>
             </span>
             <span class="nav-label">Cart</span>
         </a>
         <a href="/customer/orders.php" class="nav-item">
-            <span class="nav-icon">📦</span>
+            <span class="nav-icon">Orders</span>
             <span class="nav-label">Orders</span>
         </a>
         <a href="/customer/profile.php" class="nav-item active">
-            <span class="nav-icon">👤</span>
+            <span class="nav-icon">Profile</span>
             <span class="nav-label">Profile</span>
         </a>
     </nav>

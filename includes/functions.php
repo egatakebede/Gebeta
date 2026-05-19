@@ -108,7 +108,7 @@ function send_otp_email(string $email, string $name, string $purpose): bool {
     
     $html = '
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;">
-            <h2 style="color:#FC8019;margin-bottom:8px;">🍽️ Gebeta</h2>
+            <h2 style="color:#FC8019;margin-bottom:8px;">Gebeta Hawassa</h2>
             <p style="color:#282C3F;font-size:16px;">Hi ' . htmlspecialchars($name) . ',</p>
             <p style="color:#686B78;">' . $message . '</p>
             <div style="font-size:40px;font-weight:700;letter-spacing:12px;color:#282C3F;margin:24px 0;text-align:center;">' . $code . '</div>

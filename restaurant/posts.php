@@ -40,19 +40,19 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
     <header class="page-header">
-        <h1>📱 Posts</h1>
+        <h1>Online Posts</h1>
         <a class="pill-button" href="/restaurant/dashboard.php">Dashboard</a>
     </header>
     
     <?php if ($success = flash_get('success')): ?>
         <div style="background:#E8F5E9;border:2px solid #66BB6A;border-radius:16px;padding:16px;margin:20px;color:#2E7D32;font-weight:600;">
-            ✅ <?= htmlspecialchars($success) ?>
+            Yes <?= htmlspecialchars($success) ?>
         </div>
     <?php endif; ?>
     
     <?php if ($error = flash_get('error')): ?>
         <div style="background:#FFEBEE;border:2px solid #EF5350;border-radius:16px;padding:16px;margin:20px;color:#C62828;font-weight:600;">
-            ⚠️ <?= htmlspecialchars($error) ?>
+            Attention <?= htmlspecialchars($error) ?>
         </div>
     <?php endif; ?>
     
@@ -93,19 +93,19 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     <footer class="bottom-bar">
         <a href="/restaurant/dashboard.php">
-            <span>🏠</span>
+            <span>Home</span>
             <span>Dashboard</span>
         </a>
         <a href="/restaurant/menu.php">
-            <span>🍽️</span>
+            <span>Menu</span>
             <span>Menu</span>
         </a>
         <a href="/restaurant/posts.php" class="active">
-            <span>📱</span>
+            <span>Online</span>
             <span>Posts</span>
         </a>
         <a href="/restaurant/profile.php">
-            <span>👤</span>
+            <span>Profile</span>
             <span>Profile</span>
         </a>
     </footer>

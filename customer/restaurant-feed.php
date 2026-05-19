@@ -152,7 +152,7 @@ $cartCount = get_cart_count();
         <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
             <a class="pill-button" href="/customer/restaurant.php?id=<?= $id ?>">← Menu</a>
             <h1 style="font-size:18px;">Feed</h1>
-            <a class="pill-button" href="/customer/cart.php">🛒 <?= $cartCount ?: '' ?></a>
+            <a class="pill-button" href="/customer/cart.php">Cart <?= $cartCount ?: '' ?></a>
         </div>
     </header>
     
@@ -161,13 +161,13 @@ $cartCount = get_cart_count();
             <h2 style="text-align:center;font-size:20px;margin-bottom:8px;">Rate <?= htmlspecialchars($restaurant['name']) ?></h2>
             <div class="stars" id="rating-stars">
                 <?php for ($i = 1; $i <= 5; $i++): ?>
-                    <span class="star <?= $userRating && $i <= $userRating['rating'] ? 'active' : '' ?>" data-rating="<?= $i ?>" onclick="rateRestaurant(<?= $i ?>)">⭐</span>
+                    <span class="star <?= $userRating && $i <= $userRating['rating'] ? 'active' : '' ?>" data-rating="<?= $i ?>" onclick="rateRestaurant(<?= $i ?>)">Rating</span>
                 <?php endfor; ?>
             </div>
-            <p style="text-align:center;color:var(--gray-text);font-size:14px;">Current: <?= number_format($restaurant['rating'], 1) ?> ⭐</p>
+            <p style="text-align:center;color:var(--gray-text);font-size:14px;">Current: <?= number_format($restaurant['rating'], 1) ?> Rating</p>
         </div>
         
-        <h2 style="font-size:20px;margin-bottom:16px;">📱 Posts</h2>
+        <h2 style="font-size:20px;margin-bottom:16px;">Online Posts</h2>
         
         <?php if (empty($posts)): ?>
             <div class="empty-state">No posts yet from this restaurant.</div>

@@ -23,6 +23,10 @@ if (is_logged_in()) {
     // Customer role
     redirect('/customer/dashboard.php');
 }
+
+require_once __DIR__ . '/includes/db.php';
+$topRestaurants = $pdo->query("SELECT id, name, cuisine_type, location, rating FROM restaurants WHERE status = 'active' ORDER BY rating DESC LIMIT 6")->fetchAll(PDO::FETCH_ASSOC);
+$newRestaurants = $pdo->query("SELECT id, name, cuisine_type, location, rating FROM restaurants WHERE status = 'active' ORDER BY created_at DESC LIMIT 4")->fetchAll(PDO::FETCH_ASSOC);
 ?><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,26 +41,37 @@ if (is_logged_in()) {
 <body>
     <header class="hero-header">
         <nav class="hero-nav">
-            <div class="brand">Gebeta</div>
-            <button class="pill-button" id="open-login">Sign in</button>
+            <div class="brand"><span class="brand-mark">G</span><strong>Gebeta</strong></div>
+            <div class="nav-actions">
+                <button class="sign-btn" id="open-login">Sign In</button>
+                <button class="sign-btn sign-btn-alt" id="open-register">Sign Up</button>
+            </div>
         </nav>
 
-        <div class="hero-content">
-            <h1>Food delivery from Hawassa's best restaurants</h1>
-            <p>Order from your favorite local spots. Fast delivery to your door.</p>
-            <div class="hero-cta">
-                <button class="primary-btn hero-btn" id="open-register">Get started</button>
-            </div>
-        </div>
+        <div class="hero-body">
+            <div class="hero-copy">
+                <p class="eyebrow hero-eyebrow">$0 delivery fee on first order</p>
+                <h1>Order from Hawassa cafes and restaurants with fast local delivery.</h1>
+                <p>Search nearby cafes, find local dishes like injera and buna, and get your order delivered in minutes.</p>
 
-        <div class="hero-visual">
-            <div class="food-grid">
-                <div class="food-card"><img src="/assets/images/food/injera.jpg" alt="Injera"></div>
-                <div class="food-card"><img src="/assets/images/food/doro-wat.jpg" alt="Doro Wat"></div>
-                <div class="food-card"><img src="/assets/images/food/coffee.jpg" alt="Coffee"></div>
-                <div class="food-card"><img src="/assets/images/food/pizza.jpg" alt="Pizza"></div>
-                <div class="food-card"><img src="/assets/images/food/tibs.jpg" alt="Tibs"></div>
-                <div class="food-card"><img src="/assets/images/food/burger.jpg" alt="Burger"></div>
+                <form id="hero-search-form" action="/customer/dashboard.php" method="get" class="hero-search-form">
+                    <input id="hero-search-input" name="q" type="search" placeholder="Enter delivery address" aria-label="Enter delivery address" required>
+                    <button class="primary-btn" type="submit">→</button>
+                </form>
+
+                <div class="hero-action-row">
+                    <button type="button" class="pill-button" onclick="openModal('login-modal')">Sign in for saved address</button>
+                    <button type="button" class="pill-button" id="use-location-btn">Use current location</button>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="hero-card-image hero-card-image--big">
+                    <img src="/assets/images/food/doro-wat.jpg" alt="Delicious food">
+                </div>
+                <div class="hero-card-image hero-card-image--small">
+                    <img src="/assets/images/food/coffee.jpg" alt="Fresh food items">
+                </div>
             </div>
         </div>
     </header>
@@ -69,33 +84,109 @@ if (is_logged_in()) {
     <?php endif; ?>
 
     <main class="landing-main">
-        <section class="features-section">
-            <div class="feature-card">
-                <div class="feature-icon">⚡</div>
+        <section class="hero-feature-row">
+            <div class="hero-feature-card">
+                <div class="feature-icon">Buna</div>
                 <h3>Fast delivery</h3>
-                <p>Get your food in 30 minutes or less</p>
+                <p>Order from nearby restaurants and get food in under 30 minutes.</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">🍽️</div>
-                <h3>Best restaurants</h3>
-                <p>Curated selection of top-rated spots</p>
+            <div class="hero-feature-card">
+                <div class="feature-icon">Kitfo</div>
+                <h3>Top picks</h3>
+                <p>Browse highly rated restaurants, groceries, and convenience stores.</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">📱</div>
-                <h3>Easy ordering</h3>
-                <p>Simple checkout, track in real-time</p>
+            <div class="hero-feature-card">
+                <div class="feature-icon">Injera</div>
+                <h3>Secure checkout</h3>
+                <p>Save your details and pay safely in just a few taps.</p>
             </div>
         </section>
 
-        <section class="cuisines-section">
-            <h2>Popular cuisines</h2>
-            <div class="cuisine-grid">
-                <div class="cuisine-pill">🍲 Ethiopian</div>
-                <div class="cuisine-pill">☕ Coffee</div>
-                <div class="cuisine-pill">🍕 Pizza</div>
-                <div class="cuisine-pill">🍜 Asian</div>
-                <div class="cuisine-pill">🥗 Healthy</div>
-                <div class="cuisine-pill">🍔 Burgers</div>
+        <section class="promo-section">
+            <div class="promo-panel promo-panel-left">
+                <div>
+                    <span class="promo-label">Gebeta Plus</span>
+                    <h2>Delivery for less</h2>
+                    <p>Enjoy lower delivery fees, priority service, and exclusive member offers on every order.</p>
+                    <button class="primary-btn" type="button">Join Gebeta Plus</button>
+                </div>
+                <img src="/assets/images/food/pizza.jpg" alt="Featured meal">
+            </div>
+
+            <div class="promo-panel promo-panel-right">
+                <div>
+                    <span class="promo-label">Convenience</span>
+                    <h2>Grocery essentials in minutes</h2>
+                    <p>Get fresh produce, snacks, and daily essentials delivered straight to your door.</p>
+                    <button class="primary-btn" type="button">Shop groceries</button>
+                </div>
+                <img src="/assets/images/food/coffee.jpg" alt="Convenience items">
+            </div>
+        </section>
+
+        <section class="restaurant-showcase">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Popular this week</p>
+                    <h2>Top rated restaurants</h2>
+                </div>
+            </div>
+            <div class="cards-grid">
+                <?php if (empty($topRestaurants)): ?>
+                    <div class="empty-state">No featured restaurants are available right now.</div>
+                <?php endif; ?>
+                <?php foreach ($topRestaurants as $restaurant): ?>
+                    <a href="/customer/restaurant.php?id=<?= htmlspecialchars($restaurant['id']) ?>" class="restaurant-card">
+                        <div class="restaurant-image">
+                            <img src="/assets/images/food/injera.jpg" alt="<?= htmlspecialchars($restaurant['name']) ?>">
+                            <div class="restaurant-overlay"></div>
+                            <div class="restaurant-labels">
+                                <span class="rating-pill">Rating <?= htmlspecialchars(number_format($restaurant['rating'], 1)) ?></span>
+                            </div>
+                        </div>
+                        <div class="restaurant-card-content">
+                            <h3><?= htmlspecialchars($restaurant['name']) ?></h3>
+                            <p><?= htmlspecialchars($restaurant['cuisine_type']) ?> · <?= htmlspecialchars($restaurant['location']) ?></p>
+                            <div class="restaurant-details">
+                                <span>Top pick</span>
+                                <span><?= htmlspecialchars(number_format($restaurant['rating'], 1)) ?> rating</span>
+                            </div>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </section>
+
+        <section class="restaurant-showcase">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">New on Gebeta</p>
+                    <h2>Recently added restaurants</h2>
+                </div>
+            </div>
+            <div class="cards-grid">
+                <?php if (empty($newRestaurants)): ?>
+                    <div class="empty-state">No new restaurants are available at the moment.</div>
+                <?php endif; ?>
+                <?php foreach ($newRestaurants as $restaurant): ?>
+                    <a href="/customer/restaurant.php?id=<?= htmlspecialchars($restaurant['id']) ?>" class="restaurant-card">
+                        <div class="restaurant-image">
+                            <img src="/assets/images/food/tibs.jpg" alt="<?= htmlspecialchars($restaurant['name']) ?>">
+                            <div class="restaurant-overlay"></div>
+                            <div class="restaurant-labels">
+                                <span class="offer-pill">New</span>
+                            </div>
+                        </div>
+                        <div class="restaurant-card-content">
+                            <h3><?= htmlspecialchars($restaurant['name']) ?></h3>
+                            <p><?= htmlspecialchars($restaurant['cuisine_type']) ?> · <?= htmlspecialchars($restaurant['location']) ?></p>
+                            <div class="restaurant-details">
+                                <span>Fresh arrival</span>
+                                <span><?= htmlspecialchars(number_format($restaurant['rating'], 1)) ?> rating</span>
+                            </div>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
             </div>
         </section>
     </main>
@@ -194,6 +285,35 @@ if (is_logged_in()) {
             btn.click();
         }
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const useLocationBtn = document.getElementById('use-location-btn');
+        const searchInput = document.getElementById('hero-search-input');
+        const searchForm = document.getElementById('hero-search-form');
+
+        if (useLocationBtn && searchInput && searchForm) {
+            useLocationBtn.addEventListener('click', () => {
+                if (!navigator.geolocation) {
+                    alert('Geolocation is not supported by your browser.');
+                    return;
+                }
+
+                useLocationBtn.disabled = true;
+                useLocationBtn.textContent = 'Locating…';
+
+                navigator.geolocation.getCurrentPosition(position => {
+                    searchInput.value = `Current location`;
+                    searchForm.submit();
+                }, () => {
+                    useLocationBtn.disabled = false;
+                    useLocationBtn.textContent = 'Use current location';
+                    alert('Unable to retrieve location. Please try again.');
+                }, {
+                    timeout: 10000,
+                });
+            });
+        }
+    });
     </script>
 </body>
 </html>

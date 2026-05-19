@@ -20,14 +20,14 @@ $cartCount = get_cart_count();
 <body>
     <header class="page-header">
         <div class="header-row">
-            <h1>🛒 Your cart</h1>
+            <h1>Cart Your cart</h1>
             <a class="pill-button" href="/customer/dashboard.php">← Back</a>
         </div>
     </header>
     <main class="page-content">
         <?php if (empty($items)): ?>
             <div class="empty-cart-state">
-                <div class="empty-icon">🛒</div>
+                <div class="empty-icon">Cart</div>
                 <h2>Your cart is empty</h2>
                 <p>Add items from a restaurant to start</p>
                 <a class="primary-btn" href="/customer/dashboard.php">Browse restaurants</a>

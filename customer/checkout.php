@@ -34,8 +34,8 @@ $cartCount = get_cart_count();
             <h2>Payment method</h2>
             <label class="radio-card"><input type="radio" name="payment" value="cash" checked> 💵 Cash on delivery</label>
             <label class="radio-card"><input type="radio" name="payment" value="bank_transfer"> 🏦 Bank transfer</label>
-            <label class="radio-card"><input type="radio" name="payment" value="telebirr"> 📱 Telebirr</label>
-            <label class="radio-card"><input type="radio" name="payment" value="mpesa"> 📱 M-Pesa</label>
+            <label class="radio-card"><input type="radio" name="payment" value="telebirr"> Online Telebirr</label>
+            <label class="radio-card"><input type="radio" name="payment" value="mpesa"> Online M-Pesa</label>
         </section>
 
         <section class="checkout-summary">
@@ -44,10 +44,10 @@ $cartCount = get_cart_count();
         </section>
     </main>
     <footer class="bottom-bar">
-        <a href="/customer/dashboard.php">🏠 Home</a>
-        <a href="/customer/cart.php">🛒 Cart (<?= $cartCount ?>)</a>
+        <a href="/customer/dashboard.php">Home Home</a>
+        <a href="/customer/cart.php">Cart Cart (<?= $cartCount ?>)</a>
         <a href="/customer/orders.php">📄 Orders</a>
-        <a href="/customer/profile.php">👤 Profile</a>
+        <a href="/customer/profile.php">Profile Profile</a>
     </footer>
     <script>
         document.getElementById('place-order').addEventListener('click', function () {

@@ -69,7 +69,7 @@ function updateCartBadge(count) {
     });
     // also update plain text cart links
     document.querySelectorAll('[data-cart-link]').forEach(el => {
-        el.textContent = count > 0 ? `🛒 Cart (${count})` : '🛒 Cart';
+        el.textContent = count > 0 ? `Cart Cart (${count})` : 'Cart Cart';
     });
 }
 
@@ -90,6 +90,55 @@ function initLazyImages() {
     imgs.forEach(img => { img.classList.add('lazy'); obs.observe(img); });
 }
 
+/* ── Search helper ── */
+async function performSearchQuery(query) {
+    const input   = document.getElementById('search-input');
+    const results = document.getElementById('search-results');
+    if (!input || !results) return;
+
+    const q = String(query).trim();
+    input.value = q;
+    if (!q) {
+        results.innerHTML = '';
+        return;
+    }
+
+    results.innerHTML = '<div class="empty-state">Searching…</div>';
+    try {
+        const res  = await fetch(`/api/search.php?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        const restaurants = data.restaurants || [];
+        const dishes = data.dishes || [];
+
+        let html = '';
+        if (restaurants.length) {
+            html += `<div class="search-section"><h4>Restaurants</h4>${restaurants.map(r => `
+                <a class="restaurant-card" href="/customer/restaurant.php?id=${r.id}">
+                    <div class="restaurant-image"><img src="/assets/images/food/injera.jpg" alt="${r.name}"></div>
+                    <div class="restaurant-meta">
+                        <h3>${r.name}</h3>
+                        <p>${r.cuisine_type} · ${r.location}</p>
+                        <div class="restaurant-stats"><span>Rating ${parseFloat(r.rating).toFixed(1)}</span><span>38 mins</span></div>
+                    </div>
+                </a>`).join('')}</div>`;
+        }
+        if (dishes.length) {
+            html += `<div class="search-section"><h4>Dishes</h4>${dishes.map(d => `
+                <a class="restaurant-card" href="/customer/restaurant.php?id=${d.restaurant_id}">
+                    <div class="restaurant-image"><img src="/assets/images/food/tibs.jpg" alt="${d.dish_name}"></div>
+                    <div class="restaurant-meta">
+                        <h3>${d.dish_name}</h3>
+                        <p>${d.restaurant_name} · ${d.dish_description || 'Dish details'}</p>
+                        <div class="restaurant-stats"><span>Rating ${parseFloat(d.rating).toFixed(1)}</span><span>${parseFloat(d.price).toFixed(2)} Birr</span></div>
+                    </div>
+                </a>`).join('')}</div>`;
+        }
+        results.innerHTML = html || '<div class="empty-state">No results found.</div>';
+    } catch {
+        results.innerHTML = '<div class="empty-state">Unable to fetch search results.</div>';
+    }
+}
+
 /* ── Live search (debounced) ── */
 function initLiveSearch() {
     const input   = document.getElementById('search-input');
@@ -97,29 +146,24 @@ function initLiveSearch() {
     if (!input || !results) return;
 
     let timer;
-    input.addEventListener('input', () => {
+    const searchInputValue = () => {
         clearTimeout(timer);
         const q = input.value.trim();
         if (!q) { results.innerHTML = ''; return; }
 
         results.innerHTML = '<div class="empty-state">Searching…</div>';
-        timer = setTimeout(async () => {
-            try {
-                const res  = await fetch(`/api/search.php?q=${encodeURIComponent(q)}`);
-                const data = await res.json();
-                const list = data.results || [];
-                results.innerHTML = list.length
-                    ? list.map(r => `<a class="restaurant-card" href="/customer/restaurant.php?id=${r.id}">
-                        <div class="restaurant-image">🍽️</div>
-                        <div class="restaurant-meta">
-                            <h3>${r.name}</h3>
-                            <p>${r.cuisine_type} · ${r.location}</p>
-                            <div class="restaurant-stats"><span>⭐ ${parseFloat(r.rating).toFixed(1)}</span><span>38 mins</span></div>
-                        </div></a>`).join('')
-                    : '<div class="empty-state">No restaurants found.</div>';
-            } catch { results.innerHTML = ''; }
-        }, 300);
+        timer = setTimeout(() => performSearchQuery(q), 300);
+    };
+
+    input.addEventListener('input', searchInputValue);
+
+    document.querySelectorAll('.category-pill[data-search]').forEach(button => {
+        button.addEventListener('click', () => performSearchQuery(button.dataset.search));
     });
+
+    if (input.value.trim()) {
+        performSearchQuery(input.value.trim());
+    }
 }
 
 /* ── Real-time email check ── */
@@ -174,7 +218,7 @@ function startOrderTracking(orderId) {
 
             if (data.status === 'delivered') {
                 clearInterval(interval);
-                showToast('Order delivered! 🎉', 'success');
+                showToast('Order delivered! Enjoy your Hawassa meal.', 'success');
             }
         } catch { /* ignore */ }
     }, 10000);

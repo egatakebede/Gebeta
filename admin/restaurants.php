@@ -40,15 +40,20 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 // Build query based on filter
 $query = 'SELECT r.*, u.name AS owner_name, u.email AS owner_email FROM restaurants r JOIN users u ON r.user_id = u.id';
 if ($filter === 'pending') {
-    $query .= ' WHERE r.status = "pending"';
+    $query .= ' WHERE r.status = ?';
 } elseif ($filter === 'active') {
-    $query .= ' WHERE r.status = "active"';
+    $query .= ' WHERE r.status = ?';
 } elseif ($filter === 'suspended') {
-    $query .= ' WHERE r.status = "suspended"';
+    $query .= ' WHERE r.status = ?';
 }
 $query .= ' ORDER BY r.created_at DESC';
 
-$stmt = $pdo->query($query);
+if (in_array($filter, ['pending', 'active', 'suspended'], true)) {
+    $stmt = $pdo->prepare($query);
+    $stmt->execute([$filter]);
+} else {
+    $stmt = $pdo->query($query);
+}
 $restaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
@@ -151,13 +156,13 @@ $restaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
     <header class="page-header">
-        <h1>🏪 Manage Restaurants</h1>
+        <h1>Hawassa Manage Restaurants</h1>
         <a class="pill-button" href="/admin/dashboard.php">Dashboard</a>
     </header>
     
     <?php if ($success = flash_get('success')): ?>
         <div style="background:#E8F5E9;border:2px solid #66BB6A;border-radius:16px;padding:16px;margin:20px;color:#2E7D32;font-weight:600;">
-            ✅ <?= htmlspecialchars($success) ?>
+            Yes <?= htmlspecialchars($success) ?>
         </div>
     <?php endif; ?>
     
@@ -177,10 +182,10 @@ $restaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="restaurant-header">
                         <div>
                             <div class="restaurant-title"><?= htmlspecialchars($rest['name']) ?></div>
-                            <div class="restaurant-meta">👤 Owner: <?= htmlspecialchars($rest['owner_name']) ?> (<?= htmlspecialchars($rest['owner_email']) ?>)</div>
+                            <div class="restaurant-meta">Profile Owner: <?= htmlspecialchars($rest['owner_name']) ?> (<?= htmlspecialchars($rest['owner_email']) ?>)</div>
                             <div class="restaurant-meta">🍴 Cuisine: <?= htmlspecialchars($rest['cuisine_type']) ?></div>
-                            <div class="restaurant-meta">📍 Location: <?= htmlspecialchars($rest['location']) ?></div>
-                            <div class="restaurant-meta">📞 Phone: <?= htmlspecialchars($rest['phone']) ?></div>
+                            <div class="restaurant-meta">Location Location: <?= htmlspecialchars($rest['location']) ?></div>
+                            <div class="restaurant-meta">Phone Phone: <?= htmlspecialchars($rest['phone']) ?></div>
                         </div>
                         <span class="status-badge" style="background:<?= $rest['status'] === 'active' ? '#E8F5E9' : ($rest['status'] === 'pending' ? '#FFF3E0' : '#FFEBEE') ?>;color:<?= $rest['status'] === 'active' ? '#2E7D32' : ($rest['status'] === 'pending' ? '#F57C00' : '#C62828') ?>;padding:8px 14px;border-radius:999px;font-size:12px;font-weight:700;"><?= ucfirst($rest['status']) ?></span>
                     </div>
@@ -190,19 +195,19 @@ $restaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <?php endif; ?>
                     
                     <div style="display:flex;gap:12px;font-size:13px;color:var(--gray-text);margin-bottom:12px;">
-                        <span>⭐ Rating: <?= number_format($rest['rating'], 1) ?></span>
-                        <span>📅 Joined: <?= date('M d, Y', strtotime($rest['created_at'])) ?></span>
+                        <span>Rating Rating: <?= number_format($rest['rating'], 1) ?></span>
+                        <span>Joined Joined: <?= date('M d, Y', strtotime($rest['created_at'])) ?></span>
                     </div>
                     
                     <form method="post" class="action-buttons">
                         <input type="hidden" name="restaurant_id" value="<?= $rest['id'] ?>">
                         <?php if ($rest['status'] === 'pending'): ?>
-                            <button type="submit" name="action" value="approve" class="action-btn btn-approve">✅ Approve</button>
-                            <button type="submit" name="action" value="reject" class="action-btn btn-reject" onclick="return confirm('Reject this restaurant?')">❌ Reject</button>
+                            <button type="submit" name="action" value="approve" class="action-btn btn-approve">Yes Approve</button>
+                            <button type="submit" name="action" value="reject" class="action-btn btn-reject" onclick="return confirm('Reject this restaurant?')">No Reject</button>
                         <?php elseif ($rest['status'] === 'active'): ?>
-                            <button type="submit" name="action" value="suspend" class="action-btn btn-suspend" onclick="return confirm('Suspend this restaurant?')">⚠️ Suspend</button>
+                            <button type="submit" name="action" value="suspend" class="action-btn btn-suspend" onclick="return confirm('Suspend this restaurant?')">Attention Suspend</button>
                         <?php elseif ($rest['status'] === 'suspended'): ?>
-                            <button type="submit" name="action" value="activate" class="action-btn btn-activate">✅ Activate</button>
+                            <button type="submit" name="action" value="activate" class="action-btn btn-activate">Yes Activate</button>
                         <?php endif; ?>
                     </form>
                 </div>
@@ -212,11 +217,11 @@ $restaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     <footer class="bottom-bar">
         <a href="/admin/dashboard.php">
-            <span>🏠</span>
+            <span>Home</span>
             <span>Dashboard</span>
         </a>
         <a href="/admin/restaurants.php" class="active">
-            <span>🏪</span>
+            <span>Hawassa</span>
             <span>Restaurants</span>
         </a>
         <a href="/admin/users.php">
@@ -224,11 +229,11 @@ $restaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <span>Users</span>
         </a>
         <a href="/admin/orders.php">
-            <span>📦</span>
+            <span>Orders</span>
             <span>Orders</span>
         </a>
         <a href="/admin/reports.php">
-            <span>📊</span>
+            <span>Analytics</span>
             <span>Reports</span>
         </a>
     </footer>

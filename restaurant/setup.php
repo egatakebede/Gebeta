@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="setup-wrap">
         <div class="setup-card">
-            <h1>🏪 Setup Your Restaurant</h1>
+            <h1>Hawassa Setup Your Restaurant</h1>
             <p>Tell us about your restaurant to get started on Gebeta</p>
             
             <?php if ($error = flash_get('error')): ?>

@@ -47,10 +47,10 @@ $cartCount = get_cart_count();
         </section>
     </main>
     <footer class="bottom-bar">
-        <a href="/restaurant/dashboard.php">🏠 Dashboard</a>
-        <a href="/restaurant/menu.php">🍽️ Menu</a>
-        <a href="/restaurant/analytics.php">📊 Analytics</a>
-        <a href="/restaurant/profile.php">👤 Profile</a>
+        <a href="/restaurant/dashboard.php">Home Dashboard</a>
+        <a href="/restaurant/menu.php">Menu Menu</a>
+        <a href="/restaurant/analytics.php">Analytics Analytics</a>
+        <a href="/restaurant/profile.php">Profile Profile</a>
     </footer>
 </body>
 </html>

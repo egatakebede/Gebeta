@@ -179,7 +179,7 @@ $topRestaurants = $pdo->query('SELECT id, name, rating, cuisine_type, status FRO
 
         <?php if ($pendingRestaurants > 0): ?>
         <section style="background:#FFF3E0;border:2px solid #FFB74D;border-radius:16px;padding:16px;margin-bottom:24px;">
-            <strong style="color:#F57C00;font-size:16px;">⚠️ <?= $pendingRestaurants ?> restaurant(s) pending approval</strong>
+            <strong style="color:#F57C00;font-size:16px;">Attention <?= $pendingRestaurants ?> restaurant(s) pending approval</strong>
             <p style="color:#E65100;font-size:13px;margin-top:4px;">Review and approve new restaurant applications</p>
             <a href="/admin/restaurants.php" class="pill-button" style="margin-top:12px;display:inline-flex;">Review Now</a>
         </section>
@@ -193,15 +193,15 @@ $topRestaurants = $pdo->query('SELECT id, name, rating, cuisine_type, status FRO
                         <h4><?= htmlspecialchars($restaurant['name']) ?></h4>
                         <p><?= htmlspecialchars($restaurant['cuisine_type']) ?> • <?= ucfirst($restaurant['status']) ?></p>
                     </div>
-                    <div class="rating-badge">⭐ <?= number_format($restaurant['rating'], 1) ?></div>
+                    <div class="rating-badge">Rating <?= number_format($restaurant['rating'], 1) ?></div>
                 </div>
             <?php endforeach; ?>
         </section>
 
         <section style="margin-top:32px;">
-            <h2 class="section-title">📦 Recent Orders</h2>
+            <h2 class="section-title">Orders Recent Orders</h2>
             <?php foreach ($recentOrders as $order): ?>
-                <a href="/admin/orders.php?id=<?= $order['id'] ?>" class="order-list-item" style="display:block;text-decoration:none;color:inherit;">
+                <a href="/admin/orders.php" class="order-list-item" style="display:block;text-decoration:none;color:inherit;">
                     <div class="order-header">
                         <span class="order-number">#<?= htmlspecialchars($order['order_number']) ?></span>
                         <span class="status-badge" style="background:<?= $order['status'] === 'delivered' ? '#E8F5E9' : '#FFF3E0' ?>;color:<?= $order['status'] === 'delivered' ? '#2E7D32' : '#F57C00' ?>;padding:6px 12px;border-radius:999px;font-size:11px;font-weight:700;"><?= ucfirst(str_replace('_', ' ', $order['status'])) ?></span>
@@ -218,11 +218,11 @@ $topRestaurants = $pdo->query('SELECT id, name, rating, cuisine_type, status FRO
 
     <footer class="bottom-bar">
         <a href="/admin/dashboard.php" class="active">
-            <span>🏠</span>
+            <span>Home</span>
             <span>Dashboard</span>
         </a>
         <a href="/admin/restaurants.php">
-            <span>🏪</span>
+            <span>Hawassa</span>
             <span>Restaurants</span>
         </a>
         <a href="/admin/users.php">
@@ -230,11 +230,11 @@ $topRestaurants = $pdo->query('SELECT id, name, rating, cuisine_type, status FRO
             <span>Users</span>
         </a>
         <a href="/admin/orders.php">
-            <span>📦</span>
+            <span>Orders</span>
             <span>Orders</span>
         </a>
         <a href="/admin/reports.php">
-            <span>📊</span>
+            <span>Analytics</span>
             <span>Reports</span>
         </a>
     </footer>

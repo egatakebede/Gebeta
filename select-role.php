@@ -129,21 +129,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="role-wrap">
         <div class="role-card">
-            <h1>Welcome to Gebeta! 🎉</h1>
+            <h1>Welcome to Gebeta Hawassa</h1>
             <p>How would you like to use Gebeta?</p>
             
             <form method="post" id="role-form">
                 <div class="role-options">
                     <label class="role-option" data-role="customer">
                         <input type="radio" name="role" value="customer" required>
-                        <div class="role-icon">🍽️</div>
+                        <div class="role-icon">Buna Café</div>
                         <h3>I'm a Customer</h3>
-                        <p>Order food from restaurants and get it delivered</p>
+                        <p>Order from cafes and restaurants in Hawassa</p>
                     </label>
                     
                     <label class="role-option" data-role="restaurant">
                         <input type="radio" name="role" value="restaurant" required>
-                        <div class="role-icon">🏪</div>
+                        <div class="role-icon">Hawassa Café</div>
                         <h3>I'm a Restaurant Owner</h3>
                         <p>Manage my restaurant and receive orders</p>
                     </label>
