@@ -51,8 +51,8 @@ $newRestaurants = $pdo->query("SELECT id, name, cuisine_type, location, rating F
         <div class="hero-body">
             <div class="hero-copy">
                 <p class="eyebrow hero-eyebrow">$0 delivery fee on first order</p>
-                <h1>Order from Hawassa cafes and restaurants with fast local delivery.</h1>
-                <p>Search nearby cafes, find local dishes like injera and buna, and get your order delivered in minutes.</p>
+                <h1>Order from Gebeta cafes and restaurants.</h1>
+                <p>Find injera, buna and more with fast delivery.</p>
 
                 <form id="hero-search-form" action="/customer/dashboard.php" method="get" class="hero-search-form">
                     <input id="hero-search-input" name="q" type="search" placeholder="Enter delivery address" aria-label="Enter delivery address" required>
@@ -86,17 +86,17 @@ $newRestaurants = $pdo->query("SELECT id, name, cuisine_type, location, rating F
     <main class="landing-main">
         <section class="hero-feature-row">
             <div class="hero-feature-card">
-                <div class="feature-icon">Buna</div>
+                <div class="feature-icon">🚚</div>
                 <h3>Fast delivery</h3>
                 <p>Order from nearby restaurants and get food in under 30 minutes.</p>
             </div>
             <div class="hero-feature-card">
-                <div class="feature-icon">Kitfo</div>
+                <div class="feature-icon">⭐</div>
                 <h3>Top picks</h3>
                 <p>Browse highly rated restaurants, groceries, and convenience stores.</p>
             </div>
             <div class="hero-feature-card">
-                <div class="feature-icon">Injera</div>
+                <div class="feature-icon">💳</div>
                 <h3>Secure checkout</h3>
                 <p>Save your details and pay safely in just a few taps.</p>
             </div>

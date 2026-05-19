@@ -136,14 +136,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="role-options">
                     <label class="role-option" data-role="customer">
                         <input type="radio" name="role" value="customer" required>
-                        <div class="role-icon">Buna Café</div>
+                        <div class="role-icon"><img src="/assets/images/food/coffee.jpg" alt="Customer"></div>
                         <h3>I'm a Customer</h3>
                         <p>Order from cafes and restaurants in Hawassa</p>
                     </label>
                     
                     <label class="role-option" data-role="restaurant">
                         <input type="radio" name="role" value="restaurant" required>
-                        <div class="role-icon">Hawassa Café</div>
+                        <div class="role-icon"><img src="/assets/images/food/injera.jpg" alt="Restaurant"></div>
                         <h3>I'm a Restaurant Owner</h3>
                         <p>Manage my restaurant and receive orders</p>
                     </label>

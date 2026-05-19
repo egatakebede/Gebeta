@@ -137,7 +137,7 @@ $cartCount = get_cart_count();
         <section class="carousel-section">
             <?php foreach ($categories as $category): ?>
                 <button type="button" class="category-pill" data-search="<?= htmlspecialchars($category) ?>">
-                    <span class="category-emoji">Buna</span>
+                    <span class="category-emoji"><img src="/assets/images/food/coffee.jpg" alt="<?= htmlspecialchars($category) ?>"></span>
                     <?= htmlspecialchars($category) ?>
                 </button>
             <?php endforeach; ?>
