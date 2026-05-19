@@ -27,8 +27,8 @@ $stmt->execute([$restaurant['id']]);
 $todayRevenues = $stmt->fetchColumn();
 $todayRevenues = $todayRevenues ? $todayRevenues : 0;
 
-$stmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE restaurant_id = ? AND status = "pending"');
-$stmt->execute([$restaurant['id']]);
+$stmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE restaurant_id = ? AND status = ?');
+$stmt->execute([$restaurant['id'], 'pending']);
 $pendingOrders = $stmt->fetchColumn();
 
 $stmt = $pdo->prepare('SELECT id, order_number, status, created_at FROM orders WHERE restaurant_id = ? ORDER BY created_at DESC LIMIT 5');
