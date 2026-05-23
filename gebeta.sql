@@ -3,6 +3,7 @@
 CREATE DATABASE IF NOT EXISTS gebeta DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE gebeta;
 
+DROP TABLE IF EXISTS restaurant_ratings;
 DROP TABLE IF EXISTS otps;
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS reviews;
@@ -77,6 +78,7 @@ CREATE TABLE orders (
     delivery_fee DECIMAL(10,2) DEFAULT 0,
     status ENUM('pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
 );
@@ -125,6 +127,17 @@ CREATE TABLE payments (
     status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+
+CREATE TABLE restaurant_ratings (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    restaurant_id INT NOT NULL,
+    user_id INT NOT NULL,
+    rating INT CHECK(rating >= 1 AND rating <= 5),
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 INSERT INTO users (name, email, phone, password, role, status) VALUES
