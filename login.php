@@ -22,7 +22,12 @@ try {
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$user || !password_verify($password, $user['password'])) {
+    if (!$user) {
+        flash_set('error', 'Email or password is incorrect.');
+        redirect('/index.php');
+    }
+
+    if (!password_verify($password, $user['password'])) {
         flash_set('error', 'Email or password is incorrect.');
         redirect('/index.php');
     }
@@ -42,31 +47,49 @@ try {
             $user['id']
         ]);
         
-        // Update session with location
+        // Update user array with location
         $user['latitude'] = (float)$_POST['latitude'];
         $user['longitude'] = (float)$_POST['longitude'];
         $user['location_name'] = sanitize($_POST['location_name'] ?? '');
     }
 
-    // Login user directly without OTP
+    // Login user
     login_user($user);
 
     // Redirect based on role
     if ($user['role'] === 'restaurant') {
         // Check if restaurant setup is complete
-        $stmt = $pdo->prepare('SELECT id FROM restaurants WHERE user_id = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT id, status FROM restaurants WHERE user_id = ? LIMIT 1');
         $stmt->execute([$user['id']]);
-        if (!$stmt->fetch()) {
+        $restaurant = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$restaurant) {
             redirect('/restaurant/setup.php');
         }
+        
         redirect('/restaurant/dashboard.php');
     } elseif ($user['role'] === 'admin') {
         redirect('/admin/dashboard.php');
+    } elseif ($user['role'] === 'delivery') {
+        // Check if delivery partner is verified
+        $stmt = $pdo->prepare('SELECT verified FROM delivery_partners WHERE user_id = ? LIMIT 1');
+        $stmt->execute([$user['id']]);
+        $partner = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$partner || !$partner['verified']) {
+            redirect('/delivery/pending-approval.php');
+        }
+        
+        redirect('/delivery/dashboard.php');
     } else {
         redirect('/customer/dashboard.php');
     }
+} catch (PDOException $e) {
+    error_log('Login DB error: ' . $e->getMessage());
+    flash_set('error', 'Database error. Please try again.');
+    redirect('/index.php');
 } catch (Exception $e) {
-    error_log('Login error: ' . $e->getMessage());
+    error_log('Login error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
     flash_set('error', 'An error occurred during login. Please try again.');
     redirect('/index.php');
 }

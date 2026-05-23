@@ -30,7 +30,11 @@ function login_user(array $user) {
         'email' => $user['email'],
         'phone' => $user['phone'],
         'role' => $user['role'],
+        'latitude' => $user['latitude'] ?? null,
+        'longitude' => $user['longitude'] ?? null,
+        'location_name' => $user['location_name'] ?? null,
     ];
+    session_regenerate_id(true);
 }
 
 function logout_user() {
