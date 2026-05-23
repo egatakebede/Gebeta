@@ -34,13 +34,18 @@ try {
 
     // Update location if provided
     if (isset($_POST['latitude']) && is_numeric($_POST['latitude']) && isset($_POST['longitude']) && is_numeric($_POST['longitude'])) {
-        $stmt = $pdo->prepare('UPDATE users SET latitude = ?, longitude = ?, location_name = ? WHERE id = ?');
+        $stmt = $pdo->prepare('UPDATE users SET latitude = ?, longitude = ?, location_name = ?, location_updated_at = NOW() WHERE id = ?');
         $stmt->execute([
             (float)$_POST['latitude'], 
             (float)$_POST['longitude'], 
             sanitize($_POST['location_name'] ?? ''), 
             $user['id']
         ]);
+        
+        // Update session with location
+        $user['latitude'] = (float)$_POST['latitude'];
+        $user['longitude'] = (float)$_POST['longitude'];
+        $user['location_name'] = sanitize($_POST['location_name'] ?? '');
     }
 
     // Login user directly without OTP

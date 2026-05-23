@@ -2590,3 +2590,212 @@ label:has(input[type="radio"]:checked) {
 .bottom-bar a span:first-child {
     font-size: 20px;
 }
+
+/* Location Permission Modal */
+.location-permission-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.location-permission-modal .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.location-permission-modal .modal-content {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 500px;
+    margin: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease-out;
+}
+
+.location-permission-modal h2 {
+    font-size: 24px;
+    margin-bottom: 16px;
+    color: var(--dark-text);
+}
+
+.location-permission-modal ul {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.location-permission-modal li {
+    padding: 8px 0;
+    font-size: 16px;
+    color: var(--gray-text);
+}
+
+.location-permission-modal button {
+    width: 100%;
+    margin-top: 12px;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Delivery Partner Styles */
+.delivery-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.delivery-card.active {
+    border-left: 4px solid var(--primary-orange);
+}
+
+.delivery-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.delivery-card h3 {
+    font-size: 18px;
+    margin: 0 0 4px 0;
+}
+
+.delivery-card .status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.delivery-card .status-badge.assigned {
+    background: #FFF3E0;
+    color: #F57C00;
+}
+
+.delivery-card .status-badge.picked_up {
+    background: #E3F2FD;
+    color: #1976D2;
+}
+
+.delivery-card .status-badge.in_transit {
+    background: #E8F5E9;
+    color: #388E3C;
+}
+
+.delivery-card .fee-badge {
+    background: var(--primary-orange);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+}
+
+.delivery-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 12px 0;
+}
+
+.delivery-details .detail {
+    display: flex;
+    flex-direction: column;
+}
+
+.delivery-details .label {
+    font-size: 12px;
+    color: var(--gray-text);
+    margin-bottom: 4px;
+}
+
+.delivery-details .value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--dark-text);
+}
+
+.card-footer {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.card-footer button {
+    flex: 1;
+}
+
+.btn-toggle-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 24px;
+    border: 2px solid var(--primary-orange);
+    background: white;
+    color: var(--primary-orange);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-toggle-status:hover {
+    background: var(--primary-orange);
+    color: white;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ccc;
+    transition: background 0.3s ease;
+}
+
+.status-dot.online {
+    background: #4CAF50;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+}
+
+.empty-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--gray-text);
+    font-size: 16px;
+}
+
+/* Distance and Fee Display */
+.restaurant-meta .distance,
+.restaurant-meta .delivery-fee {
+    font-size: 14px;
+    color: var(--gray-text);
+}
+
+.restaurant-meta .divider {
+    margin: 0 8px;
+    color: #ddd;
+}

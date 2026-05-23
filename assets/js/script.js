@@ -1,3 +1,101 @@
+/* ── Location Permission Request ── */
+function requestLocationPermission() {
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                saveUserLocation(latitude, longitude);
+            },
+            (error) => {
+                console.log('Location permission denied:', error);
+                showLocationModal();
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    } else {
+        showLocationModal();
+    }
+}
+
+async function saveUserLocation(lat, lng) {
+    try {
+        const response = await fetch('/api/save-location.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                latitude: lat,
+                longitude: lng,
+                location_name: 'Current Location',
+                timestamp: new Date().toISOString()
+            })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            console.log('Location saved successfully');
+        }
+    } catch (error) {
+        console.error('Error saving location:', error);
+    }
+}
+
+function showLocationModal() {
+    const modal = document.createElement('div');
+    modal.className = 'location-permission-modal';
+    modal.innerHTML = `
+        <div class="modal-overlay" onclick="this.parentElement.remove()"></div>
+        <div class="modal-content">
+            <h2>📍 Enable Location Services</h2>
+            <p>We need your location to:</p>
+            <ul>
+                <li>✅ Show restaurants near you</li>
+                <li>✅ Calculate accurate delivery time</li>
+                <li>✅ Assign closest delivery partner</li>
+                <li>✅ Real-time delivery tracking</li>
+            </ul>
+            <button class="primary-btn" onclick="retryLocationPermission()">📍 Enable Location</button>
+            <button class="secondary-btn" onclick="this.closest('.location-permission-modal').remove()">Continue Without Location</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function retryLocationPermission() {
+    document.querySelector('.location-permission-modal')?.remove();
+    requestLocationPermission();
+}
+
+/* ── Load Restaurant Distances ── */
+async function loadRestaurantDistances() {
+    const restaurants = document.querySelectorAll('[data-restaurant-id]');
+    
+    for (const restCard of restaurants) {
+        const restaurantId = restCard.dataset.restaurantId;
+        
+        try {
+            const response = await fetch(`/api/calculate-distance.php?restaurant_id=${restaurantId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const distanceEl = restCard.querySelector('.distance');
+                const feeEl = restCard.querySelector('.delivery-fee');
+                
+                if (distanceEl) distanceEl.textContent = data.distance + ' km';
+                if (feeEl) feeEl.textContent = data.delivery_fee + ' Birr';
+                
+                restCard.dataset.deliveryFee = data.delivery_fee;
+                restCard.dataset.deliveryTime = data.delivery_time_minutes;
+            }
+        } catch (error) {
+            console.error('Error loading distance:', error);
+        }
+    }
+}
+
 /* ── Toast ── */
 function showToast(message, type = 'info') {
     const t = document.createElement('div');
