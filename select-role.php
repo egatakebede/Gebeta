@@ -21,7 +21,7 @@ if ($user && $user['role'] !== 'customer') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $role = in_array($_POST['role'] ?? '', ['customer', 'restaurant'], true) ? $_POST['role'] : 'customer';
+    $role = in_array($_POST['role'] ?? '', ['customer', 'restaurant', 'delivery'], true) ? $_POST['role'] : 'customer';
     
     $stmt = $pdo->prepare('UPDATE users SET role = ? WHERE id = ?');
     $stmt->execute([$role, $_SESSION['user']['id']]);
@@ -146,6 +146,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="role-icon"><img src="/assets/images/food/injera.jpg" alt="Restaurant"></div>
                         <h3>I'm a Restaurant Owner</h3>
                         <p>Manage my restaurant and receive orders</p>
+                    </label>
+                    
+                    <label class="role-option" data-role="delivery">
+                        <input type="radio" name="role" value="delivery" required>
+                        <div class="role-icon">🚚</div>
+                        <h3>I'm a Delivery Partner</h3>
+                        <p>Deliver food and earn money on your schedule</p>
                     </label>
                 </div>
                 

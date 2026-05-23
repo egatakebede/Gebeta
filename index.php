@@ -20,6 +20,9 @@ if (is_logged_in()) {
     if ($role === 'admin') {
         redirect('/admin/dashboard.php');
     }
+    if ($role === 'delivery') {
+        redirect('/delivery/dashboard.php');
+    }
     // Customer role
     redirect('/customer/dashboard.php');
 }
