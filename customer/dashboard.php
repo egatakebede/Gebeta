@@ -3,61 +3,77 @@ require_once __DIR__ . '/../includes/auth.php';
 require_login(['customer']);
 require_once __DIR__ . '/../includes/db.php';
 
-$userId = $_SESSION['user']['id'];
-$userName = $_SESSION['user']['name'];
-$userInitials = strtoupper(substr($userName, 0, 1) . (strpos($userName, ' ') ? substr($userName, strpos($userName, ' ') + 1, 1) : ''));
+try {
+    $userId = $_SESSION['user']['id'];
+    $userName = $_SESSION['user']['name'];
+    $userInitials = strtoupper(substr($userName, 0, 1) . (strpos($userName, ' ') ? substr($userName, strpos($userName, ' ') + 1, 1) : ''));
 
-$stmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE user_id = ?');
-$stmt->execute([$userId]);
-$ordersCount = (int)$stmt->fetchColumn();
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE user_id = ?');
+    $stmt->execute([$userId]);
+    $ordersCount = (int)$stmt->fetchColumn();
 
-$stmt = $pdo->prepare('SELECT COUNT(DISTINCT restaurant_id) FROM orders WHERE user_id = ?');
-$stmt->execute([$userId]);
-$savedCount = (int)$stmt->fetchColumn();
+    $stmt = $pdo->prepare('SELECT COUNT(DISTINCT restaurant_id) FROM orders WHERE user_id = ?');
+    $stmt->execute([$userId]);
+    $savedCount = (int)$stmt->fetchColumn();
 
-$points = $ordersCount * 30;
-$walletBalance = 0.00;
+    $points = $ordersCount * 30;
+    $walletBalance = 0.00;
 
-$stmt = $pdo->prepare('SELECT DISTINCT cuisine_type FROM restaurants WHERE status = ? AND cuisine_type <> "" ORDER BY cuisine_type LIMIT 8');
-$stmt->execute(['active']);
-$categories = array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'cuisine_type');
-if (empty($categories)) {
-    $categories = ['Ethiopian', 'Wat', 'Tibs', 'Coffee', 'Pizza', 'Desserts', 'Salads', 'Snacks'];
+    $stmt = $pdo->prepare('SELECT DISTINCT cuisine_type FROM restaurants WHERE status = ? AND cuisine_type IS NOT NULL AND cuisine_type <> "" ORDER BY cuisine_type LIMIT 8');
+    $stmt->execute(['active']);
+    $categories = array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'cuisine_type');
+    if (empty($categories)) {
+        $categories = ['Ethiopian', 'Wat', 'Tibs', 'Coffee', 'Pizza', 'Desserts', 'Salads', 'Snacks'];
+    }
+
+    $stmt = $pdo->prepare('SELECT id, name, description, cuisine_type, location, rating FROM restaurants WHERE status = ? ORDER BY rating DESC LIMIT 6');
+    $stmt->execute(['active']);
+    $topRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $stmt = $pdo->prepare('SELECT id, name, description, cuisine_type, location, rating FROM restaurants WHERE status = ? ORDER BY created_at DESC LIMIT 6');
+    $stmt->execute(['active']);
+    $newRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $stmt = $pdo->prepare('SELECT r.id, r.name, r.cuisine_type, r.location, r.rating, COUNT(o.id) AS order_count
+        FROM restaurants r
+        JOIN orders o ON r.id = o.restaurant_id
+        WHERE o.user_id = ?
+        GROUP BY r.id, r.name, r.cuisine_type, r.location, r.rating
+        ORDER BY order_count DESC, MAX(o.created_at) DESC
+        LIMIT 4');
+    $stmt->execute([$userId]);
+    $favorites = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $stmt = $pdo->prepare('SELECT r.id, r.name, r.cuisine_type, r.location, r.rating, MAX(o.created_at) AS last_ordered_at
+        FROM restaurants r
+        JOIN orders o ON r.id = o.restaurant_id
+        WHERE o.user_id = ?
+        GROUP BY r.id, r.name, r.cuisine_type, r.location, r.rating
+        ORDER BY last_ordered_at DESC
+        LIMIT 4');
+    $stmt->execute([$userId]);
+    $recentRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $stmt = $pdo->prepare('SELECT id FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 1');
+    $stmt->execute([$userId]);
+    $lastOrderId = $stmt->fetchColumn();
+
+    $cartCount = function_exists('get_cart_count') ? get_cart_count() : 0;
+} catch (Exception $e) {
+    error_log('Customer dashboard error: ' . $e->getMessage());
+    // Set default values
+    $ordersCount = 0;
+    $savedCount = 0;
+    $points = 0;
+    $walletBalance = 0.00;
+    $categories = ['Ethiopian', 'Wat', 'Tibs', 'Coffee'];
+    $topRestaurants = [];
+    $newRestaurants = [];
+    $favorites = [];
+    $recentRestaurants = [];
+    $lastOrderId = false;
+    $cartCount = 0;
 }
-
-$stmt = $pdo->prepare('SELECT id, name, description, cuisine_type, location, rating FROM restaurants WHERE status = ? ORDER BY rating DESC LIMIT 6');
-$stmt->execute(['active']);
-$topRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$stmt = $pdo->prepare('SELECT id, name, description, cuisine_type, location, rating FROM restaurants WHERE status = ? ORDER BY created_at DESC LIMIT 6');
-$stmt->execute(['active']);
-$newRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$stmt = $pdo->prepare('SELECT r.id, r.name, r.cuisine_type, r.location, r.rating, COUNT(o.id) AS order_count
-    FROM restaurants r
-    JOIN orders o ON r.id = o.restaurant_id
-    WHERE o.user_id = ?
-    GROUP BY r.id, r.name, r.cuisine_type, r.location, r.rating
-    ORDER BY order_count DESC, MAX(o.created_at) DESC
-    LIMIT 4');
-$stmt->execute([$userId]);
-$favorites = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$stmt = $pdo->prepare('SELECT r.id, r.name, r.cuisine_type, r.location, r.rating, MAX(o.created_at) AS last_ordered_at
-    FROM restaurants r
-    JOIN orders o ON r.id = o.restaurant_id
-    WHERE o.user_id = ?
-    GROUP BY r.id, r.name, r.cuisine_type, r.location, r.rating
-    ORDER BY last_ordered_at DESC
-    LIMIT 4');
-$stmt->execute([$userId]);
-$recentRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$stmt = $pdo->prepare('SELECT id FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 1');
-$stmt->execute([$userId]);
-$lastOrderId = $stmt->fetchColumn();
-
-$cartCount = get_cart_count();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -68,6 +84,17 @@ $cartCount = get_cart_count();
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
+    <?php if (isset($e)): ?>
+    <div style="background: #ffebee; color: #c62828; padding: 16px; margin: 16px; border-radius: 8px; border-left: 4px solid #c62828;">
+        <strong>⚠️ Dashboard Error:</strong> Some features may not work correctly. Please contact support if this persists.
+        <?php if (ini_get('display_errors')): ?>
+        <details style="margin-top: 8px;">
+            <summary style="cursor: pointer;">Technical Details</summary>
+            <pre style="margin-top: 8px; font-size: 12px;"><?= htmlspecialchars($e->getMessage()) ?></pre>
+        </details>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
     <div class="pull-refresh"></div>
     <header class="page-header">
         <div class="header-row">
