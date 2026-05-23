@@ -39,7 +39,7 @@ try {
 
     // Update location if provided
     if (isset($_POST['latitude']) && is_numeric($_POST['latitude']) && isset($_POST['longitude']) && is_numeric($_POST['longitude'])) {
-        $stmt = $pdo->prepare('UPDATE users SET latitude = ?, longitude = ?, location_name = ?, location_updated_at = NOW() WHERE id = ?');
+        $stmt = $pdo->prepare('UPDATE users SET latitude = ?, longitude = ?, location_name = ? WHERE id = ?');
         $stmt->execute([
             (float)$_POST['latitude'], 
             (float)$_POST['longitude'], 
