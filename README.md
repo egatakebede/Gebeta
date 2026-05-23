@@ -185,6 +185,18 @@ Email: customer@test.com
 Password: password123
 ```
 
+### Delivery Partner Accounts
+```
+Email: delivery1@gebeta.com (Bike - Online - 4.8⭐)
+Password: password123
+
+Email: delivery2@gebeta.com (Auto - Online - 4.6⭐)
+Password: password123
+
+Email: delivery3@gebeta.com (Car - Offline - 4.9⭐)
+Password: password123
+```
+
 **Note**: All passwords are hashed with `password_hash()` using `PASSWORD_DEFAULT`.
 
 ---

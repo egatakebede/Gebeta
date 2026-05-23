@@ -225,10 +225,14 @@ CREATE TABLE delivery_ratings (
     INDEX idx_partner (delivery_partner_id)
 );
 
+-- Default test users (password: password123)
 INSERT INTO users (name, email, phone, password, role, status) VALUES
 ('Admin User', 'admin@gebeta.com', '+251911000001', '$2y$10$Z2nVTfsIoG5oDsJN8vnwQOtqDDwqUD6dlfFxzFqqOGbXPY8CaX/ai', 'admin', 'active'),
 ('Yod Restaurant', 'yod@restaurant.com', '+251911000002', '$2y$10$eNDh14nZSQl7qKXnfBnoQezl8rVlKqxlj9grohwTkQaihcs87sZFC', 'restaurant', 'active'),
-('Test Customer', 'customer@test.com', '+251911000003', '$2y$10$iTE5bq9RdPVCtv/N1u0QluUZdvuLFXakYIpsJYkz3l82XX/n4sUKm', 'customer', 'active');
+('Test Customer', 'customer@test.com', '+251911000003', '$2y$10$iTE5bq9RdPVCtv/N1u0QluUZdvuLFXakYIpsJYkz3l82XX/n4sUKm', 'customer', 'active'),
+('Abebe Kebede', 'delivery1@gebeta.com', '+251911000004', '$2y$10$Z2nVTfsIoG5oDsJN8vnwQOtqDDwqUD6dlfFxzFqqOGbXPY8CaX/ai', 'delivery', 'active'),
+('Tigist Alemu', 'delivery2@gebeta.com', '+251911000005', '$2y$10$Z2nVTfsIoG5oDsJN8vnwQOtqDDwqUD6dlfFxzFqqOGbXPY8CaX/ai', 'delivery', 'active'),
+('Dawit Tesfaye', 'delivery3@gebeta.com', '+251911000006', '$2y$10$Z2nVTfsIoG5oDsJN8vnwQOtqDDwqUD6dlfFxzFqqOGbXPY8CaX/ai', 'delivery', 'active');
 
 INSERT INTO restaurants (user_id, name, description, cuisine_type, location, phone, opening_time, closing_time, rating, status) VALUES
 (2, 'Yod Abyssinia', 'Authentic Ethiopian food with traditional recipes.', 'Ethiopian, Injera, Doro Wat', 'Piassa, Hawassa', '+251911000002', '09:00:00', '22:00:00', 4.3, 'active');
@@ -251,3 +255,9 @@ INSERT INTO orders (order_number, user_id, restaurant_id, delivery_address, paym
 INSERT INTO order_items (order_id, menu_item_id, quantity, price) VALUES
 (1, 1, 1, 250.00),
 (1, 2, 1, 280.00);
+
+-- Delivery partners data
+INSERT INTO delivery_partners (user_id, phone, vehicle_type, vehicle_number, vehicle_color, license_number, license_expiry, is_available, status, rating, total_deliveries, verified) VALUES
+(4, '+251911000004', 'bike', 'AA-12345', 'Red', 'DL-2024-001', '2026-12-31', TRUE, 'online', 4.8, 156, TRUE),
+(5, '+251911000005', 'auto', 'AA-67890', 'Blue', 'DL-2024-002', '2027-06-30', TRUE, 'online', 4.6, 89, TRUE),
+(6, '+251911000006', 'car', 'AA-11223', 'White', 'DL-2024-003', '2025-12-31', TRUE, 'offline', 4.9, 234, TRUE);
