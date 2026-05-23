@@ -27,10 +27,10 @@ Should return: `{"status":"ok","timestamp":...}`
 **Solutions**:
 1. Verify environment variables in Render dashboard:
    ```
-   DB_HOST=gebeta-db-gebeta.a.aivencloud.com:23863
+   DB_HOST=your-aiven-host.aivencloud.com:port
    DB_NAME=defaultdb
    DB_USER=avnadmin
-   DB_PASS=AVNS_AcTxZFvGTBqvOJcYhPY
+   DB_PASS=your_database_password_here
    ```
 
 2. Check if Aiven database is running
@@ -137,11 +137,11 @@ DB_PASS=
 ### Option C: Test Connection Manually
 ```php
 <?php
-$host = 'gebeta-db-gebeta.a.aivencloud.com';
+$host = 'your-aiven-host.aivencloud.com';
 $port = 23863;
 $db = 'defaultdb';
 $user = 'avnadmin';
-$pass = 'AVNS_AcTxZFvGTBqvOJcYhPY';
+$pass = 'your_password_here';
 
 try {
     $pdo = new PDO("mysql:host=$host;port=$port;dbname=$db", $user, $pass, [

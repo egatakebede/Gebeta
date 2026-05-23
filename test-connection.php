@@ -21,10 +21,10 @@ if (file_exists($envFile)) {
 
 // Test 2: Load environment variables
 echo "<h2>2. Environment Variables</h2>";
-$host = getenv('DB_HOST') ?: 'gebeta-db-gebeta.a.aivencloud.com:23863';
+$host = getenv('DB_HOST') ?: 'your-host.aivencloud.com:port';
 $name = getenv('DB_NAME') ?: 'defaultdb';
 $user = getenv('DB_USER') ?: 'avnadmin';
-$pass = getenv('DB_PASS') ?: 'AVNS_AcTxZFvGTBqvOJcYhPY';
+$pass = getenv('DB_PASS') ?: 'your_password';
 
 // Parse host:port
 $port = 3306;
