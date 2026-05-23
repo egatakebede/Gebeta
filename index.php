@@ -28,7 +28,14 @@ if (is_logged_in()) {
 }
 
 require_once __DIR__ . '/includes/db.php';
-$topRestaurants = $pdo->query("SELECT id, name, cuisine_type, location, rating FROM restaurants WHERE status = 'active' ORDER BY rating DESC LIMIT 6")->fetchAll(PDO::FETCH_ASSOC);
+
+$topRestaurants = [];
+try {
+    $topRestaurants = $pdo->query("SELECT id, name, cuisine_type, location, rating FROM restaurants WHERE status = 'active' ORDER BY rating DESC LIMIT 6")->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log('Error fetching restaurants: ' . $e->getMessage());
+    // Continue without restaurants
+}
 ?><!DOCTYPE html>
 <html lang="en">
 <head>

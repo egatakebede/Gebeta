@@ -15,10 +15,11 @@
 # Disable directory listing
 Options -Indexes
 
-# PHP error display off in production
+# PHP error display - ENABLE FOR DEBUGGING
 <IfModule mod_php.c>
-    php_flag display_errors Off
+    php_flag display_errors On
     php_flag log_errors On
+    php_value error_reporting 32767
 </IfModule>
 
 # Environment variables (set these in your hosting panel or vhost config instead)
