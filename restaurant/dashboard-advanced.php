@@ -28,9 +28,14 @@ $stmt = $pdo->prepare('SELECT SUM(total_amount + delivery_fee) FROM orders WHERE
 $stmt->execute([$restaurant['id']]);
 $todayRevenue = $stmt->fetchColumn() ?: 0;
 
-$stmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE restaurant_id = ? AND status = "pending"');
-$stmt->execute([$restaurant['id']]);
-$pendingOrders = (int) $stmt->fetchColumn();
+try {
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE restaurant_id = ? AND status = "pending"');
+    $stmt->execute([$restaurant['id']]);
+    $pendingOrders = (int) $stmt->fetchColumn();
+} catch (PDOException $e) {
+    $pendingOrders = 0;
+}
+
 
 
 $stmt = $pdo->prepare('SELECT COUNT(*) FROM menu_items mi JOIN categories c ON mi.category_id = c.id WHERE c.restaurant_id = ?');
