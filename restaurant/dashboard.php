@@ -28,9 +28,12 @@ $stmt = $pdo->prepare('SELECT SUM(total_amount + delivery_fee) FROM orders WHERE
 $stmt->execute([$restaurant['id']]);
 $todayRevenue = $stmt->fetchColumn() ?: 0;
 
+// Pending orders: depends on the orders table status column
+// (Schema in gebeta.sql/aiven-import.sql defines `orders.status`, not `orders.pending`.)
 $stmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE restaurant_id = ? AND status = "pending"');
 $stmt->execute([$restaurant['id']]);
-$pendingOrders = $stmt->fetchColumn();
+$pendingOrders = (int) $stmt->fetchColumn();
+
 
 $stmt = $pdo->prepare('SELECT COUNT(*) FROM menu_items mi JOIN categories c ON mi.category_id = c.id WHERE c.restaurant_id = ?');
 $stmt->execute([$restaurant['id']]);

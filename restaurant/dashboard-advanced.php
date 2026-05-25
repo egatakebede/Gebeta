@@ -30,7 +30,8 @@ $todayRevenue = $stmt->fetchColumn() ?: 0;
 
 $stmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE restaurant_id = ? AND status = "pending"');
 $stmt->execute([$restaurant['id']]);
-$pendingOrders = $stmt->fetchColumn();
+$pendingOrders = (int) $stmt->fetchColumn();
+
 
 $stmt = $pdo->prepare('SELECT COUNT(*) FROM menu_items mi JOIN categories c ON mi.category_id = c.id WHERE c.restaurant_id = ?');
 $stmt->execute([$restaurant['id']]);
