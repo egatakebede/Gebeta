@@ -1,0 +1,68 @@
+/* Generic toggle styling used by toggle.js
+   NOTE: your app already has .btn-toggle-status etc. This file adds new classes only.
+*/
+
+.toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid var(--border-gray, #E8E8E8);
+  border-radius: 12px;
+}
+
+.toggle-label {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--dark-text, #282C3F);
+}
+
+.toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 999px;
+  padding: 10px 18px;
+  border: 2px solid var(--border-gray, #E8E8E8);
+  background: #fff;
+  cursor: pointer;
+  font-weight: 900;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+  border-color: #FC8019;
+  background: var(--bg-orange-tint, #FFF5ED);
+}
+
+.toggle-btn.loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.toggle-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.toggle-btn[data-status="online"],
+.toggle-btn[data-status="open"],
+.toggle-btn[data-status="on"],
+.toggle-btn[data-status="active"] {
+  color: #48C479;
+  border-color: #48C479;
+  background: rgba(72,196,121,0.10);
+}
+
+.toggle-btn[data-status="offline"],
+.toggle-btn[data-status="closed"],
+.toggle-btn[data-status="off"],
+.toggle-btn[data-status="suspended"] {
+  color: #E53935;
+  border-color: #E53935;
+  background: rgba(229,57,53,0.08);
+}
+

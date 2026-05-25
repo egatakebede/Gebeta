@@ -129,6 +129,17 @@ $topItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <button class="header-toggle" id="sidebarToggle">
                     <span>☰</span>
                 </button>
+
+                <!-- Alert container + notification panel (unified) -->
+                <div id="alertContainer" class="alert-container"></div>
+                <div id="notificationPanel" class="notification-panel">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button type="button" class="close-btn" onclick="closeNotificationPanel()">✕</button>
+                    </div>
+                    <div id="notificationList" class="notification-list"> </div>
+                </div>
+
                 
                 <div class="header-search">
                     <span class="header-search-icon">🔍</span>
@@ -136,12 +147,13 @@ $topItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
                 
                 <div class="header-actions">
-                    <button class="header-action-btn">
+                <button class="header-action-btn" type="button" onclick="toggleNotificationPanel()">
                         <span>🔔</span>
                         <?php if ($pendingOrders > 0): ?>
-                        <span class="header-action-badge"><?= $pendingOrders ?></span>
+                        <span class="header-action-badge" style="display:none">0</span>
                         <?php endif; ?>
                     </button>
+
                     
                     <div class="header-profile">
                         <div class="header-avatar">🏪</div>
@@ -160,13 +172,31 @@ $topItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <p class="content-subtitle">Manage your restaurant and track performance</p>
                 </div>
                 
-                <!-- Status Alert -->
-                <?php if ($restaurant['status'] === 'pending'): ?>
-                <div style="background: var(--yellow-50); border: 2px solid var(--yellow-500); border-radius: var(--radius-xl); padding: var(--space-6); margin-bottom: var(--space-6);">
-                    <strong style="color: var(--yellow-700); font-size: var(--text-lg);">⏳ Pending Approval</strong>
-                    <p style="color: var(--yellow-600); margin-top: var(--space-2);">Your restaurant is under review. You'll be notified once approved.</p>
+                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom: 14px;">
+                    <div style="display:flex; flex-direction:column;">
+                        <!-- Status Alert -->
+                        <?php if ($restaurant['status'] === 'pending'): ?>
+                        <div style="background: var(--yellow-50); border: 2px solid var(--yellow-500); border-radius: var(--radius-xl); padding: var(--space-6);">
+                            <strong style="color: var(--yellow-700); font-size: var(--text-lg);">⏳ Pending Approval</strong>
+                            <p style="color: var(--yellow-600); margin-top: var(--space-2);">Your restaurant is under review. You'll be notified once approved.</p>
+                        </div>
+                        <?php else: ?>
+                        <div style="font-size:13px;color:var(--gray-text);padding:6px 2px;">Restaurant account is currently <strong style="color:var(--dark-text)"><?= htmlspecialchars($restaurant['status']) ?></strong></div>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php $isOpen = ($restaurant['status'] ?? '') === 'active'; ?>
+                    <button
+                        id="restaurantToggle"
+                        class="action-btn <?= $isOpen ? 'action-btn-danger' : 'action-btn-success' ?>"
+                        type="button"
+                        onclick="toggleRestaurantStatus()"
+                        data-status="<?= $isOpen ? 'open' : 'closed' ?>"
+                        style="white-space:nowrap;">
+                        <span id="restaurantStatusText"><?= $isOpen ? '🟢 Open' : '🔴 Closed' ?></span>
+                    </button>
                 </div>
-                <?php endif; ?>
+
                 
                 <!-- KPI Cards -->
                 <div class="kpi-grid">
@@ -312,9 +342,24 @@ $topItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </main>
     </div>
     
+    <link rel="stylesheet" href="/assets/css/alert.css">
+    <link rel="stylesheet" href="/assets/css/toggle.css">
+
+    <script src="/assets/js/alert.js"></script>
+    <script src="/assets/js/toggle.js"></script>
+
     <script>
+        // Wire real-time notifications
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof startNotificationPolling === 'function') {
+                startNotificationPolling('/api/get-notifications.php', 10000);
+            }
+        });
+
         document.getElementById('sidebarToggle').addEventListener('click', () => {
+
             document.getElementById('sidebar').classList.toggle('collapsed');
+
             document.getElementById('mainContent').classList.toggle('expanded');
         });
         

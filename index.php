@@ -51,12 +51,21 @@ try {
 <body>
     <header class="hero-header">
         <nav class="hero-nav">
-            <div class="brand"><span class="brand-mark">G</span><strong>Gebeta</strong></div>
+            <div class="brand">
+                <span class="brand-mark">G</span>
+                <strong>Gebeta</strong>
+            </div>
+
             <div class="nav-actions">
-                <button class="sign-btn" id="open-login">Sign In</button>
-                <button class="sign-btn sign-btn-alt" id="open-register">Sign Up</button>
+                <button class="sign-btn" id="open-login" type="button" onclick="openModal('login-modal')">
+                    Sign In
+                </button>
+                <button class="sign-btn sign-btn-alt" id="open-register" type="button" onclick="openModal('register-modal')">
+                    Sign Up
+                </button>
             </div>
         </nav>
+
 
         <div class="hero-body">
             <div class="hero-copy">
@@ -234,7 +243,21 @@ try {
 
     <script src="assets/js/script.js"></script>
     <script>
+    // --- Landing helpers (bridge to existing modal implementation) ---
+    // Provide showModal()/closeModal()/switchModal() names from the spec-style HTML.
+    function showModal(modalId) {
+        openModal(modalId);
+    }
+    function closeModalSpec(modalId) {
+        closeModal(modalId);
+    }
+    function switchModal(closeId, openId) {
+        closeModalSpec(closeId);
+        showModal(openId);
+    }
+
     // Initialize Google Sign-In
+
     window.onload = function() {
         const clientId = '<?php echo GOOGLE_CLIENT_ID; ?>';
         if (clientId) {

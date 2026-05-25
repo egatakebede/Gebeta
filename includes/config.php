@@ -44,3 +44,5 @@ define('SITE_NAME', 'Gebeta');
 define('BASE_URL',  '');
 define('UPLOAD_DIR_RESTAURANTS', 'uploads/restaurants/');
 define('UPLOAD_DIR_MENU',        'uploads/menu/');
+define('UPLOAD_DIR_POSTS',       'uploads/posts/');
+

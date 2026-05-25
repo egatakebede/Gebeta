@@ -159,9 +159,14 @@ $completedDeliveries = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <?= ucfirst($partner['status']) ?>
                         </span>
                     </h2>
-                    <button class="action-btn <?= $partner['status'] === 'online' ? 'action-btn-danger' : 'action-btn-success' ?>" onclick="toggleStatus()">
-                        <?= $partner['status'] === 'online' ? 'Go Offline' : 'Go Online' ?>
+                    <button
+                        id="statusToggle"
+                        class="action-btn <?= $partner['status'] === 'online' ? 'action-btn-danger' : 'action-btn-success' ?>"
+                        onclick="toggleStatus()"
+                        data-status="<?= $partner['status'] === 'online' ? 'online' : 'offline' ?>">
+                        <span id="statusText"><?= $partner['status'] === 'online' ? '🟢 Online' : '🔴 Offline' ?></span>
                     </button>
+
                 </div>
                 
                 <div class="header-actions">
@@ -183,11 +188,22 @@ $completedDeliveries = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </header>
             
             <!-- Content -->
-            <div class="admin-content">
+                <!-- Alert container + notification panel (unified) -->
+                <div id="alertContainer" class="alert-container"></div>
+                <div id="notificationPanel" class="notification-panel">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button type="button" class="close-btn" onclick="closeNotificationPanel()">✕</button>
+                    </div>
+                    <div id="notificationList" class="notification-list"> </div>
+                </div>
+
+                <div class="admin-content">
                 <div class="content-header">
                     <h1 class="content-title">Delivery Dashboard</h1>
                     <p class="content-subtitle">Track your deliveries and earnings</p>
                 </div>
+
                 
                 <!-- KPI Cards -->
                 <div class="kpi-grid">
@@ -378,8 +394,23 @@ $completedDeliveries = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </main>
     </div>
     
+    <link rel="stylesheet" href="/assets/css/alert.css">
+    <link rel="stylesheet" href="/assets/css/toggle.css">
+
+    <script src="/assets/js/alert.js"></script>
+    <script src="/assets/js/toggle.js"></script>
+
     <script>
+        // Wire real-time notifications
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof startNotificationPolling === 'function') {
+                startNotificationPolling('/api/get-notifications.php', 10000);
+            }
+        });
+
         document.getElementById('sidebarToggle').addEventListener('click', () => {
+
+
             document.getElementById('sidebar').classList.toggle('collapsed');
             document.getElementById('mainContent').classList.toggle('expanded');
         });
@@ -413,12 +444,10 @@ $completedDeliveries = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
         });
         
-        function toggleStatus() {
-            // Implement status toggle
-            alert('Status toggle functionality - to be implemented');
-        }
-        
+        // toggleStatus() is provided by /assets/js/toggle.js
+
         function acceptOrder(orderId) {
+
             if (confirm('Accept this delivery order?')) {
                 // Implement accept order
                 alert('Accept order functionality - to be implemented');

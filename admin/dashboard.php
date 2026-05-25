@@ -48,7 +48,8 @@ $recentOrders = $pdo->query('
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-    <div class="admin-layout">
+    <div class="admin-layout admin-theme" id="adminThemeRoot">
+
         <!-- Sidebar -->
         <aside class="admin-sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -344,6 +345,43 @@ $recentOrders = $pdo->query('
         function viewOrder(id) {
             window.location.href = `/admin/orders.php?id=${id}`;
         }
+
+        // Day/Night theme toggle
+        const themeRoot = document.getElementById('adminThemeRoot');
+        const darkToggle = document.getElementById('darkModeToggle');
+        const THEME_KEY = 'gebeta_admin_theme'; // 'day' | 'night'
+
+        function applyTheme(theme) {
+            if (!themeRoot) return;
+            const isNight = theme === 'night';
+            themeRoot.classList.toggle('night', isNight);
+
+            // keep icon: 🌙 for night, ☀️ for day
+            if (darkToggle) {
+                darkToggle.querySelector('span')?.textContent = isNight ? '🌙' : '☀️';
+            }
+        }
+
+        function initTheme() {
+            const saved = localStorage.getItem(THEME_KEY);
+            if (saved === 'night' || saved === 'day') {
+                applyTheme(saved);
+                return;
+            }
+            // default: system preference
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            applyTheme(prefersDark ? 'night' : 'day');
+        }
+
+        darkToggle?.addEventListener('click', () => {
+            const currentNight = themeRoot?.classList.contains('night');
+            const next = currentNight ? 'day' : 'night';
+            localStorage.setItem(THEME_KEY, next);
+            applyTheme(next);
+        });
+
+        initTheme();
     </script>
 </body>
 </html>
+

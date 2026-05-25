@@ -152,6 +152,66 @@
   background: var(--gray-50);
 }
 
+/* Day/Night theme (admin pages) */
+.admin-theme {
+  --admin-bg: var(--gray-50);
+  --admin-surface: #ffffff;
+  --admin-text: var(--gray-900);
+  --admin-muted: var(--gray-600);
+  --admin-border: var(--gray-200);
+}
+
+.admin-theme.night {
+  --admin-bg: var(--dark-900);
+  --admin-surface: #111827;
+  --admin-text: #E5E7EB;
+  --admin-muted: #9CA3AF;
+  --admin-border: rgba(255,255,255,0.12);
+}
+
+.admin-layout.admin-theme {
+  background: var(--admin-bg);
+}
+
+.admin-layout.admin-theme .admin-sidebar {
+  background: var(--admin-surface);
+  border-right: 1px solid var(--admin-border);
+}
+
+.admin-layout.admin-theme .sidebar-title,
+.admin-layout.admin-theme .nav-item {
+  color: var(--admin-muted);
+}
+
+.admin-layout.admin-theme .nav-item.active {
+  background: rgba(252, 128, 25, 0.18);
+  color: var(--orange-500);
+}
+
+.admin-layout.admin-theme .nav-section-title,
+.admin-layout.admin-theme .header-search-input,
+.admin-layout.admin-theme .header-toggle,
+.admin-layout.admin-theme .header-action-btn,
+.admin-layout.admin-theme .content-subtitle {
+  color: var(--admin-muted);
+}
+
+.admin-layout.admin-theme .admin-header {
+  background: var(--admin-surface);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-layout.admin-theme .header-search-input {
+  border: 1px solid var(--admin-border);
+}
+
+.admin-layout.admin-theme .admin-content,
+.admin-layout.admin-theme .content-title,
+.admin-layout.admin-theme .content-subtitle {
+  color: var(--admin-text);
+}
+
+
 /* Sidebar */
 .admin-sidebar {
   width: 280px;
