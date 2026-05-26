@@ -8,6 +8,9 @@ $totalOrders = $pdo->query('SELECT COUNT(*) FROM orders')->fetchColumn();
 $yesterdayOrders = $pdo->query('SELECT COUNT(*) FROM orders WHERE DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)')->fetchColumn();
 $ordersTrend = $yesterdayOrders > 0 ? (($totalOrders - $yesterdayOrders) / $yesterdayOrders) * 100 : 0;
 
+// (Advanced dashboard merge) Keep chart/table IDs and behavior consistent.
+
+
 $stmt = $pdo->query('SELECT SUM(total_amount + delivery_fee) FROM orders');
 $totalRevenue = $stmt->fetchColumn() ?: 0;
 $stmt = $pdo->query('SELECT SUM(total_amount + delivery_fee) FROM orders WHERE DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)');
