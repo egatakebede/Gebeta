@@ -128,12 +128,15 @@ try {
         'success' => true,
         'data' => [
             'filters' => ['from' => $from, 'to' => $to],
-            'chart' => [
+        'chart' => [
                 'labels' => $labels,
                 'orders_trend' => $ordersTrend,
                 'revenue_trend' => $revenueTrend,
                 'top_items' => $topItems,
                 'peak_hours' => $peakHours,
+                // compatibility keys (some frontend versions expect these)
+                'orders_trend_data' => $ordersTrend,
+                'revenue_trend_data' => $revenueTrend,
             ],
             'updated_at' => time()
         ]

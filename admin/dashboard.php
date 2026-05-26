@@ -302,6 +302,11 @@ $recentOrders = $pdo->query('
     </div>
     
     <script>
+        // Ensure sidebar links are always clickable (prevents z-index/overlay issues)
+        document.querySelectorAll('.admin-sidebar .nav-item').forEach(a => {
+            a.style.pointerEvents = 'auto';
+        });
+
         // Sidebar toggle
         document.getElementById('sidebarToggle').addEventListener('click', () => {
             document.getElementById('sidebar').classList.toggle('collapsed');

@@ -3,9 +3,6 @@ require_once __DIR__ . '/../includes/auth.php';
 require_login(['customer']);
 require_once __DIR__ . '/../includes/db.php';
 
-// unified alerts/notifications assets
-
-
 $userId = $_SESSION['user']['id'];
 $userName = $_SESSION['user']['name'];
 
@@ -71,8 +68,6 @@ $recommendedRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>Dashboard · Gebeta</title>
     <link rel="stylesheet" href="/assets/css/admin-layout.css">
     <link rel="stylesheet" href="/assets/css/admin-components.css">
-    <link rel="stylesheet" href="/assets/css/alert.css">
-    <link rel="stylesheet" href="/assets/css/toggle.css">
 </head>
 <body>
     <div class="admin-layout">
@@ -128,29 +123,18 @@ $recommendedRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <button class="header-toggle" id="sidebarToggle">
                     <span>☰</span>
                 </button>
-
-                <div id="alertContainer" class="alert-container"></div>
-                <div id="notificationPanel" class="notification-panel">
-                    <div class="notification-header">
-                        <h3>Notifications</h3>
-                        <button type="button" class="close-btn" onclick="closeNotificationPanel()">✕</button>
-                    </div>
-                    <div id="notificationList" class="notification-list"></div>
-                </div>
-
+                
                 <div class="header-search">
-
                     <span class="header-search-icon">🔍</span>
                     <input type="text" class="header-search-input" placeholder="Search restaurants, dishes..." id="globalSearch">
                 </div>
                 
                 <div class="header-actions">
-                    <button class="header-action-btn" type="button" onclick="toggleNotificationPanel()">
+                    <button class="header-action-btn">
                         <span>🔔</span>
                     </button>
                     
                     <div class="header-profile">
-
                         <div class="header-avatar"><?= strtoupper(substr($userName, 0, 1)) ?></div>
                         <div class="header-profile-info">
                             <div class="header-profile-name"><?= htmlspecialchars($userName) ?></div>
@@ -309,23 +293,9 @@ $recommendedRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </main>
     </div>
     
-    <link rel="stylesheet" href="/assets/css/alert.css">
-    <link rel="stylesheet" href="/assets/css/toggle.css">
-
-    <script src="/assets/js/alert.js"></script>
-    <script src="/assets/js/toggle.js"></script>
-
     <script>
-        // Wire real-time notifications
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof startNotificationPolling === 'function') {
-                startNotificationPolling('/api/get-notifications.php', 10000);
-            }
-        });
-
         // Sidebar toggle
         document.getElementById('sidebarToggle').addEventListener('click', () => {
-
             document.getElementById('sidebar').classList.toggle('collapsed');
             document.getElementById('mainContent').classList.toggle('expanded');
         });

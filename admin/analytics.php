@@ -241,11 +241,15 @@ $topRestaurants = $pdo->query('
             document.getElementById('mainContent').classList.toggle('expanded');
         });
         
-        // Revenue Chart
-        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-        const orderData = <?= json_encode($ordersByDay) ?>;
-        
-        new Chart(revenueCtx, {
+        // Revenue Chart (guard against missing canvas)
+        const revenueEl = document.getElementById('revenueChart');
+        if (!revenueEl) {
+            console.error('Analytics: #revenueChart canvas not found');
+        } else {
+            const revenueCtx = revenueEl.getContext('2d');
+            const orderData = <?= json_encode($ordersByDay) ?>;
+            
+            new Chart(revenueCtx, {
             type: 'line',
             data: {
                 labels: orderData.map(d => new Date(d.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})),
@@ -281,11 +285,15 @@ $topRestaurants = $pdo->query('
             }
         });
         
-        // Top Restaurants Chart
-        const restaurantsCtx = document.getElementById('restaurantsChart').getContext('2d');
-        const topRestaurants = <?= json_encode($topRestaurants) ?>;
-        
-        new Chart(restaurantsCtx, {
+        // Top Restaurants Chart (guard against missing canvas)
+        const restaurantsEl = document.getElementById('restaurantsChart');
+        if (!restaurantsEl) {
+            console.error('Analytics: #restaurantsChart canvas not found');
+        } else {
+            const restaurantsCtx = restaurantsEl.getContext('2d');
+            const topRestaurants = <?= json_encode($topRestaurants) ?>;
+            
+            new Chart(restaurantsCtx, {
             type: 'bar',
             data: {
                 labels: topRestaurants.map(r => r.name),
