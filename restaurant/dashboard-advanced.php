@@ -859,18 +859,22 @@ if (!$restaurant) {
     // Real-time polling
     let intervalId;
     function startPolling(){
+        // Avoid multiple intervals (can happen if this script is re-evaluated)
         loadDashboardData();
-        if (intervalId) clearInterval(intervalId);
+        if (intervalId) return;
         intervalId = setInterval(loadDashboardData, 30000);
     }
 
+    // start polling once
     startPolling();
+
 
     <script>
         // Day/Night theme toggle (same behavior as admin)
         const themeRoot = document.getElementById('adminThemeRoot') || document.body;
         const darkToggleBtn = document.getElementById('darkModeToggle');
         const THEME_KEY = 'gebeta_admin_theme';
+
 
         function applyTheme(theme) {
             const isNight = theme === 'night';
