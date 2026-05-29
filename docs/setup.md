@@ -15,9 +15,10 @@
 6. Open the app in your browser.
 
 ## Sample accounts
-- Admin: `admin@gebeta.com` / `admin123`
-- Restaurant: `yod@restaurant.com` / `restaurant123`
-- Customer: `customer@test.com` / `customer123`
+- Admin: `admin@gebeta.com` / `password123`
+- Customer: `abebe@customer.com` / `password123`
+- Restaurant: `yod@restaurant.com` / `password123`
+- Delivery: `abebe.driver@delivery.com` / `password123`
 
 ## Notes
 - Login and registration use modal forms on `index.php`.

@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="role-wrap">
         <div class="role-card">
-            <h1>Welcome to Gebeta Hawassa</h1>
+            <h1>Welcome to Gebeta </h1>
             <p>How would you like to use Gebeta?</p>
             
             <form method="post" id="role-form">
@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="radio" name="role" value="customer" required>
                         <div class="role-icon"><img src="/assets/images/food/burger.jpg" alt="Customer"></div>
                         <h3>I'm a Customer</h3>
-                        <p>Order from cafes and restaurants in Hawassa</p>
+                        <p>Order from cafes and restaurants </p>
                     </label>
                     
                     <label class="role-option" data-role="restaurant">

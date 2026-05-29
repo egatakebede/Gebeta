@@ -1,15 +1,8 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
+require_login(['customer']);
 require_once __DIR__ . '/../includes/db.php';
-
-header('Content-Type: application/json; charset=utf-8');
-
-// Check if user is logged in and is customer
-if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'customer') {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-    exit;
-}
+header('Content-Type: application/json');
 
 $userId = $_SESSION['user']['id'];
 
@@ -17,19 +10,19 @@ try {
     // Get customer stats
     $stmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE user_id = ?');
     $stmt->execute([$userId]);
-    $totalOrders = (int)$stmt->fetchColumn();
+    $totalOrders = $stmt->fetchColumn();
 
-    $stmt = $pdo->prepare('SELECT COALESCE(SUM(total_amount + delivery_fee), 0) FROM orders WHERE user_id = ?');
+    $stmt = $pdo->prepare('SELECT SUM(total_amount + delivery_fee) FROM orders WHERE user_id = ?');
     $stmt->execute([$userId]);
-    $totalSpent = (float)$stmt->fetchColumn();
+    $totalSpent = $stmt->fetchColumn() ?: 0;
 
     $stmt = $pdo->prepare('SELECT COUNT(DISTINCT restaurant_id) FROM orders WHERE user_id = ?');
     $stmt->execute([$userId]);
-    $restaurantsOrdered = (int)$stmt->fetchColumn();
+    $restaurantsOrdered = $stmt->fetchColumn();
 
     $stmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE user_id = ? AND status = "delivered"');
     $stmt->execute([$userId]);
-    $completedOrders = (int)$stmt->fetchColumn();
+    $completedOrders = $stmt->fetchColumn();
 
     // Recent orders
     $stmt = $pdo->prepare('
@@ -44,7 +37,7 @@ try {
     $stmt->execute([$userId]);
     $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Favorite restaurants
+    // Top restaurants
     $stmt = $pdo->prepare('
         SELECT r.id, r.name, r.cuisine_type, r.location, r.rating,
                COUNT(o.id) AS order_count
@@ -72,25 +65,20 @@ try {
         'success' => true,
         'data' => [
             'metrics' => [
-                'total_orders' => $totalOrders,
-                'total_spent' => $totalSpent,
-                'restaurants_ordered' => $restaurantsOrdered,
-                'completed_orders' => $completedOrders
+                'total_orders' => (int)$totalOrders,
+                'completed_orders' => (int)$completedOrders,
+                'total_spent' => (float)$totalSpent,
+                'restaurants_ordered' => (int)$restaurantsOrdered
             ],
             'recent_orders' => $recentOrders,
             'favorite_restaurants' => $favoriteRestaurants,
-            'recommended_restaurants' => $recommendedRestaurants,
-            'updated_at' => time()
+            'recommended_restaurants' => $recommendedRestaurants
         ]
     ]);
-
-} catch (PDOException $e) {
-    error_log('Customer dashboard API error: ' . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => 'Database error occurred']);
 } catch (Exception $e) {
-    error_log('Customer dashboard API error: ' . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => 'Server error occurred']);
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage()
+    ]);
 }
 ?>

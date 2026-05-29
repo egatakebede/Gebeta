@@ -241,7 +241,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <div class="test-accounts" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #eee; font-size: 11px; color: #999; text-align: center;">
             <div>Admin: admin@gebeta.com (password123)</div>
-            <div>User: customer@test.com (password123)</div>
+            <div>Customer: abebe@customer.com (password123)</div>
+            <div>Restaurant: yod@restaurant.com (password123)</div>
+            <div>Delivery: abebe.driver@delivery.com (password123)</div>
         </div>
     </div>
 </body>
