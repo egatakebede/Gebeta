@@ -780,217 +780,6 @@ if (empty($topRestaurants)) {
             transform: scale(1.05);
         }
         
-        /* Welcome Popup */
-        .popup-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            animation: fadeInUp 0.3s ease;
-        }
-        
-        .popup-overlay.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .welcome-popup {
-            background: white;
-            border-radius: 2rem;
-            max-width: 450px;
-            width: 90%;
-            overflow: hidden;
-            animation: popupSlide 0.4s ease;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-        }
-        
-        .welcome-popup .popup-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            padding: 2rem;
-            text-align: center;
-            color: white;
-            position: relative;
-        }
-        
-        .welcome-popup .popup-header h3 {
-            font-size: 1.8rem;
-            margin-bottom: 0.3rem;
-        }
-        
-        .welcome-popup .popup-header p {
-            opacity: 0.9;
-        }
-        
-        .welcome-popup .popup-body {
-            padding: 2rem;
-            text-align: center;
-        }
-        
-        .welcome-popup .popup-body p {
-            color: var(--gray-600);
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-        
-        .welcome-popup .offer-badge {
-            background: var(--primary-light);
-            color: var(--primary);
-            padding: 0.5rem 1rem;
-            border-radius: 40px;
-            display: inline-block;
-            font-weight: bold;
-            margin-bottom: 1rem;
-        }
-        
-        .popup-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 1rem;
-        }
-        
-        .popup-actions button {
-            padding: 0.8rem 1.5rem;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .popup-actions .btn-primary {
-            background: var(--primary);
-            color: white;
-            border: none;
-        }
-        
-        .popup-actions .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: scale(1.05);
-        }
-        
-        .popup-actions .btn-secondary {
-            background: white;
-            color: var(--gray-600);
-            border: 1px solid var(--gray-200);
-        }
-        
-        .popup-actions .btn-secondary:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-        
-        /* Ad Popup (Bottom Right) */
-        .ad-popup {
-            position: fixed;
-            bottom: 100px;
-            right: 30px;
-            background: white;
-            border-radius: 1rem;
-            width: 320px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            z-index: 1999;
-            animation: adSlideIn 0.5s ease;
-            display: none;
-            overflow: hidden;
-        }
-        
-        .ad-popup.active {
-            display: block;
-        }
-        
-        .ad-popup .ad-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            padding: 0.8rem 1rem;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .ad-popup .ad-header h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-        
-        .ad-popup .ad-close {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 1.2rem;
-            transition: transform 0.3s;
-        }
-        
-        .ad-popup .ad-close:hover {
-            transform: rotate(90deg);
-        }
-        
-        .ad-popup .ad-body {
-            padding: 1.2rem;
-            text-align: center;
-        }
-        
-        .ad-popup .ad-discount {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            color: white;
-            font-size: 1.5rem;
-            font-weight: bold;
-            animation: pulse 2s infinite;
-        }
-        
-        .ad-popup .ad-body h3 {
-            font-size: 1.2rem;
-            margin-bottom: 0.3rem;
-            color: var(--gray-800);
-        }
-        
-        .ad-popup .ad-body p {
-            font-size: 0.75rem;
-            color: var(--gray-500);
-            margin-bottom: 1rem;
-        }
-        
-        .ad-popup .ad-code {
-            background: var(--primary-light);
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            font-family: monospace;
-            font-weight: bold;
-            color: var(--primary);
-            margin-bottom: 0.8rem;
-            font-size: 1.1rem;
-        }
-        
-        .ad-popup .ad-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.6rem;
-            border-radius: 0.5rem;
-            width: 100%;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .ad-popup .ad-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-        }
-        
         /* Download App */
         .download-section {
             background: var(--gray-900);
@@ -1277,9 +1066,223 @@ if (empty($topRestaurants)) {
             .section-header-center h2 { font-size: 1.8rem; }
             .social-icons { justify-content: center; }
             .floating-cart { bottom: 80px; }
-            .ad-popup { right: 15px; left: 15px; width: auto; bottom: 80px; }
-            .welcome-popup { width: 95%; }
-            .popup-actions { flex-direction: column; }
+            .ad-popup { right: 15px; left: 15px; width: auto; bottom: 150px; }
+            .welcome-popup { width: 95%; max-height: 90vh; overflow-y: auto; }
+            .welcome-popup .popup-header { padding: 1.5rem 1rem; }
+            .welcome-popup .popup-body { padding: 1.5rem 1rem; }
+            .popup-actions { flex-direction: column; gap: 0.8rem; }
+            .popup-actions button { width: 100%; }
+        }
+
+        /* Welcome Popup */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            animation: fadeInUp 0.3s ease;
+        }
+        
+        .popup-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .welcome-popup {
+            background: white;
+            border-radius: 2rem;
+            max-width: 450px;
+            width: 90%;
+            overflow: hidden;
+            animation: popupSlide 0.4s ease;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+        
+        .welcome-popup .popup-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 2rem;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        
+        .welcome-popup .popup-header h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .welcome-popup .popup-header p {
+            opacity: 0.9;
+        }
+        
+        .welcome-popup .popup-body {
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .welcome-popup .popup-body p {
+            color: var(--gray-600);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .welcome-popup .offer-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            display: inline-block;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        
+        .popup-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+        .popup-actions button {
+            padding: 0.8rem 1.5rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .popup-actions .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+        
+        .popup-actions .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+        
+        .popup-actions .btn-secondary {
+            background: white;
+            color: var(--gray-600);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .popup-actions .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        /* Ad Popup (Bottom Right) */
+        .ad-popup {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: white;
+            border-radius: 1rem;
+            width: 320px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 1999;
+            animation: adSlideIn 0.5s ease;
+            display: none;
+            overflow: hidden;
+        }
+        
+        .ad-popup.active {
+            display: block;
+        }
+        
+        .ad-popup .ad-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 0.8rem 1rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .ad-popup .ad-header h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .ad-popup .ad-close {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+        
+        .ad-popup .ad-close:hover {
+            transform: rotate(90deg);
+        }
+        
+        .ad-popup .ad-body {
+            padding: 1.2rem;
+            text-align: center;
+        }
+        
+        .ad-popup .ad-discount {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        
+        .ad-popup .ad-body h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.3rem;
+            color: var(--gray-800);
+        }
+        
+        .ad-popup .ad-body p {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-bottom: 1rem;
+        }
+        
+        .ad-popup .ad-code {
+            background: var(--primary-light);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.8rem;
+            font-size: 1.1rem;
+        }
+        
+        .ad-popup .ad-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.6rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .ad-popup .ad-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
         }
     </style>
 </head>
@@ -1332,7 +1335,7 @@ if (empty($topRestaurants)) {
         <div class="hero-body">
             <div class="hero-copy">
                 <span class="eyebrow animate-fadeLeft">✨ Premium Food Delivery</span>
-                <h1 class="animate-fadeLeft delay-1">Enjoy Tibs, Ayinet &<br>Dorowot in Hawassa</h1>
+                <h1 class="animate-fadeLeft delay-1">Experience the Spirit of<br>Gebeta in Hawassa</h1>
                 <p class="animate-fadeLeft delay-2">Discover local Ethiopian cuisine and international favorites.<br>Fast delivery, best prices.</p>
 
                 <form action="/customer/dashboard.php" method="get" class="hero-search-form animate-fadeLeft delay-3">
