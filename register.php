@@ -7,6 +7,7 @@ if (isset($_SESSION['user'])) {
     exit;
 }
 
+require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/db.php';
 
 $error = '';
@@ -19,6 +20,8 @@ $formData = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
+
     $formData = [
         'name' => trim($_POST['name'] ?? ''),
         'email' => trim($_POST['email'] ?? ''),
@@ -27,6 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
+    
+    $latitude = $_POST['latitude'] ?? null;
+    $longitude = $_POST['longitude'] ?? null;
+    $location_name = $_POST['location_name'] ?? null;
     
     // Validation
     if (empty($formData['name'])) {
@@ -58,37 +65,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($stmt->fetchColumn()) {
             $error = 'Email already registered';
+
+            flash_set('register_error', $error);
+            header('Location: /index.php');
+            exit;
         } else {
             try {
                 // Hash password
                 $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
                 
-                // Insert user
-                $stmt = $pdo->prepare('
-                    INSERT INTO users (name, email, phone, password, role, status)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                ');
-                $stmt->execute([
-                    $formData['name'],
-                    $formData['email'],
-                    $formData['phone'],
-                    $hashedPassword,
-                    $formData['role'],
-                    'active'
-                ]);
-                
-                $success = '✅ Account created successfully! Redirecting to login...';
-                
-                // Redirect after 2 seconds
-                header('Refresh: 2; url=/login.php');
+                // Store pending registration data in session for OTP verification
+                $_SESSION['pending_register'] = [
+                    'name' => $formData['name'],
+                    'email' => $formData['email'],
+                    'phone' => $formData['phone'],
+                    'password' => $hashedPassword, // Store hashed password
+                    'role' => $formData['role'],
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                    'location_name' => $location_name
+                ];
+
+                // Send OTP for email verification
+                $sent = send_otp_email($formData['email'], $formData['name'], 'register');
+                if (!$sent) {
+                    flash_set('register_error', 'Failed to send verification email. Please try again.');
+                    redirect('/index.php');
+                }
+
+                // Redirect to OTP verification page
+                redirect('/verify.php?purpose=register');
             } catch (PDOException $e) {
                 $error = 'Registration failed. Please try again.';
                 error_log('Registration error: ' . $e->getMessage());
+
+                flash_set('register_error', $error);
+                header('Location: /index.php');
+                exit;
             }
         }
     }
 }
-?>!DOCTYPE html>
+?><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -288,13 +306,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-group">
                 <label class="form-label">Email Address</label>
                 <input 
-                    type="email" 
+                    type="email"
+                    id="email"
                     name="email" 
                     class="form-input" 
                     placeholder="your@email.com"
                     value="<?php echo htmlspecialchars($formData['email']); ?>"
                     required
                 >
+                <div id="email-feedback" style="font-size: 0.75rem; margin-top: 0.25rem; font-weight: 500;"></div>
             </div>
             
             <div class="form-group">
@@ -363,5 +383,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Already have an account? <a href="/login.php">Sign in</a>
         </div>
     </div>
+
+    <script>
+        const emailInput = document.getElementById('email');
+        const emailFeedback = document.getElementById('email-feedback');
+        const submitBtn = document.querySelector('button[type="submit"]');
+        let checkTimeout = null;
+
+        emailInput.addEventListener('input', function() {
+            const email = this.value.trim();
+            
+            // Reset state
+            emailFeedback.textContent = '';
+            submitBtn.disabled = false;
+            clearTimeout(checkTimeout);
+
+            // Basic validation before calling API
+            if (!email || !email.includes('@') || email.length < 5) {
+                return;
+            }
+
+            // Debounce the API call (500ms)
+            checkTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/check-email.php?email=${encodeURIComponent(email)}`);
+                    const data = await response.json();
+
+                    if (data.available) {
+                        emailFeedback.textContent = '✓ Email is available';
+                        emailFeedback.style.color = '#059669'; // Green
+                    } else {
+                        emailFeedback.textContent = '✗ Email is already registered';
+                        emailFeedback.style.color = '#DC2626'; // Red
+                        submitBtn.disabled = true;
+                    }
+                } catch (error) {
+                    console.error('Error checking email:', error);
+                }
+            }, 500);
+        });
+    </script>
 </body>
 </html>

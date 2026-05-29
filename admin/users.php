@@ -833,6 +833,10 @@ $totalAll = $stmt->fetchColumn();
             background: rgba(0,0,0,0.5);
             z-index: 99;
         }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
         
         /* Responsive */
         @media (max-width: 1024px) {

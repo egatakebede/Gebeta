@@ -548,6 +548,14 @@ $topRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 transform: translateX(-100%);
             }
             
+            .admin-sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            #sidebarOverlay.active {
+                display: block;
+            }
+
             .admin-main {
                 margin-left: 0;
             }
@@ -579,6 +587,9 @@ $topRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </style>
 </head>
 <body class="admin-theme" id="adminThemeRoot">
+    <!-- Sidebar Overlay for Mobile -->
+    <div id="sidebarOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:99;"></div>
+
     <div class="admin-layout">
         <!-- Sidebar -->
         <aside class="admin-sidebar" id="sidebar">
@@ -786,8 +797,20 @@ $topRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
         document.getElementById('sidebarToggle').addEventListener('click', function() {
             var sidebar = document.getElementById('sidebar');
             var main = document.getElementById('mainContent');
-            sidebar.classList.toggle('collapsed');
-            main.classList.toggle('expanded');
+            var overlay = document.getElementById('sidebarOverlay');
+            
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('mobile-open');
+                overlay.classList.toggle('active');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                main.classList.toggle('expanded');
+            }
+        });
+
+        document.getElementById('sidebarOverlay').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.remove('mobile-open');
+            this.classList.remove('active');
         });
         
         // Dark Mode Toggle

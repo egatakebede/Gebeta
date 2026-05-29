@@ -15,7 +15,7 @@ if (!$restaurant) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    ""<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#FC8019">
@@ -167,9 +167,29 @@ if (!$restaurant) {
             opacity: 0.6;
             cursor: not-allowed;
         }
+
+        /* Mobile sidebar fixes */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                z-index: 101;
+                transition: transform 0.3s ease;
+            }
+            .admin-sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            #sidebarOverlay.active {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body>
+<div id="sidebarOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100;"></div>
 <div class="admin-layout admin-theme" id="adminThemeRoot">
 
     <aside class="admin-sidebar" id="sidebar">
@@ -574,8 +594,22 @@ navItems.forEach(a => {
 });
 
 document.getElementById('sidebarToggle').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('collapsed');
-    document.getElementById('mainContent').classList.toggle('expanded');
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('mainContent');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    if (window.innerWidth <= 768) {
+        sidebar.classList.toggle('mobile-open');
+        overlay.classList.toggle('active');
+    } else {
+        sidebar.classList.toggle('collapsed');
+        main.classList.toggle('expanded');
+    }
+});
+
+document.getElementById('sidebarOverlay').addEventListener('click', function() {
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    this.classList.remove('active');
 });
 
 // ─────────────────────────────────────────────

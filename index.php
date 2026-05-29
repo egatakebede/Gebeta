@@ -32,6 +32,7 @@ require_once __DIR__ . '/includes/functions.php';
 // Check for login error from redirect
 $loginError = flash_get('login_error');
 $registerError = flash_get('register_error');
+$forgotError = flash_get('forgot_error');
  
 // Safe stats fetching with fallbacks
 $totalRestaurants = 0;
@@ -985,6 +986,34 @@ if (empty($topRestaurants)) {
             transform: translateY(-2px);
         }
         
+        /* Form Refinements */
+        .modal-alert {
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            border: 1px solid transparent;
+        }
+        .modal-alert-error {
+            background: #FEE2E2;
+            color: #DC2626;
+            border-color: #FECACA;
+        }
+        .password-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            cursor: pointer;
+            color: var(--gray-400);
+        }
+        .form-hint { font-size: 11px; color: var(--gray-500); margin-top: 4px; display: block; }
+        
         .divider {
             text-align: center;
             margin: 1.5rem 0;
@@ -1517,7 +1546,7 @@ if (empty($topRestaurants)) {
             <form method="POST" action="login.php" onsubmit="handleFormSubmit(this)">
                 <?= csrf_field() ?>
                 <?php if ($loginError): ?>
-                    <div style="background:#FEE2E2; color:#DC2626; padding:12px; border-radius:12px; margin-bottom:20px; font-size:14px; border:1px solid #FECACA; font-weight:600; text-align:center;">
+                    <div class="modal-alert modal-alert-error">
                         ❌ <?= htmlspecialchars($loginError) ?>
                     </div>
                 <?php endif; ?>
@@ -1527,9 +1556,15 @@ if (empty($topRestaurants)) {
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" name="password" placeholder="Enter your password" required>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="login_password" name="password" placeholder="Enter your password" required>
+                        <i class="fas fa-eye password-toggle" onclick="togglePassword(this)"></i>
+                    </div>
                 </div>
-                <div style="text-align: right; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <label style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 500; cursor: pointer;">
+                        <input type="checkbox" name="remember" style="width: auto;"> Remember me
+                    </label>
                     <button type="button" onclick="switchModal('login-modal', 'forgot-password-modal')" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.8rem; padding: 0;">Forgot password?</button>
                 </div>
                 <input type="hidden" id="login-lat" value="">
@@ -1561,6 +1596,11 @@ if (empty($topRestaurants)) {
         <div class="modal-body">
             <form method="POST" action="register.php">
                 <?= csrf_field() ?>
+                <?php if ($registerError): ?>
+                    <div class="modal-alert modal-alert-error">
+                        ❌ <?= htmlspecialchars($registerError) ?>
+                    </div>
+                <?php endif; ?>
                 <div class="form-group">
                     <label>Full Name</label>
                     <input type="text" name="name" placeholder="John Doe" required>
@@ -1571,16 +1611,48 @@ if (empty($topRestaurants)) {
                 </div>
                 <div class="form-group">
                     <label>Email Address</label>
-                    <input type="email" name="email" placeholder="you@example.com" required>
+                    <input type="email" name="email" placeholder="you@example.com" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
+                </div>
+                <div class="form-group">
+                    <label>Register As</label>
+                    <select name="role" class="form-input" style="width: 100%;" required>
+                        <option value="customer">Customer</option>
+                        <option value="restaurant">Restaurant Owner</option>
+                        <option value="delivery">Delivery Partner</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" name="password" placeholder="At least 6 characters" required>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="reg_password" name="password" placeholder="At least 8 characters" required>
+                        <i class="fas fa-eye password-toggle" onclick="togglePassword(this)"></i>
+                    </div>
                 </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="reg_confirm_password" name="confirm_password" placeholder="Repeat password" required>
+                    </div>
+                </div>
+
+                <div class="password-requirements" id="reg-requirements" style="background: var(--gray-50); padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 12px;">
+                    <div id="req-len" style="color: var(--gray-500); margin-bottom: 4px;">
+                        <i class="fas fa-circle" style="font-size: 8px;"></i> At least 8 characters
+                    </div>
+                    <div id="req-up" style="color: var(--gray-500); margin-bottom: 4px;">
+                        <i class="fas fa-circle" style="font-size: 8px;"></i> One uppercase letter
+                    </div>
+                    <div id="req-num" style="color: var(--gray-500); margin-bottom: 4px;">
+                        <i class="fas fa-circle" style="font-size: 8px;"></i> One number
+                    </div>
+                    <div id="req-match" style="color: var(--gray-500);">
+                        <i class="fas fa-circle" style="font-size: 8px;"></i> Passwords match
+                    </div>
+                </div>
+
                 <input type="hidden" name="latitude" id="reg-lat" value="">
                 <input type="hidden" name="longitude" id="reg-lng" value="">
                 <input type="hidden" name="location_name" id="reg-loc" value="">
-                <input type="hidden" name="role" value="customer">
                 <button type="submit" class="modal-btn">Create Account</button>
             </form>
             <div class="divider">or</div>
@@ -1609,7 +1681,7 @@ if (empty($topRestaurants)) {
             <form method="POST" action="forgot-password.php" onsubmit="handleFormSubmit(this)">
                 <?= csrf_field() ?>
                 <?php if ($forgotError): ?>
-                    <div style="background:#FEE2E2; color:#DC2626; padding:12px; border-radius:12px; margin-bottom:20px; font-size:14px; border:1px solid #FECACA; font-weight:600; text-align:center;">
+                    <div class="modal-alert modal-alert-error">
                         ❌ <?= htmlspecialchars($forgotError) ?>
                     </div>
                 <?php endif; ?>
@@ -1746,8 +1818,11 @@ if (empty($topRestaurants)) {
         }
         
         function closeModal(modalId) {
-            document.getElementById('modal-overlay').classList.remove('active');
             document.getElementById(modalId).classList.remove('active');
+            // Only hide overlay if no other modals are active
+            if (!document.querySelector('.modal.active')) {
+                document.getElementById('modal-overlay').classList.remove('active');
+            }
             document.body.style.overflow = '';
         }
         
@@ -1758,8 +1833,63 @@ if (empty($topRestaurants)) {
         }
         
         function switchModal(closeId, openId) {
-            closeModal(closeId);
+            // Deactivate the current modal but leave the overlay active for the next one
+            document.getElementById(closeId).classList.remove('active');
             setTimeout(() => openModal(openId), 200);
+        }
+
+        function togglePassword(icon) {
+            const input = icon.parentElement.querySelector('input');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        // Password Validation Logic for Register Modal
+        const regPass = document.getElementById('reg_password');
+        const regConf = document.getElementById('reg_confirm_password');
+        const regSubmit = document.querySelector('#register-modal .modal-btn');
+
+        function validateRegForm() {
+            const val = regPass.value;
+            const confVal = regConf.value;
+            
+            const hasLen = val.length >= 8;
+            const hasUpper = /[A-Z]/.test(val);
+            const hasNum = /[0-9]/.test(val);
+            const matches = val === confVal && confVal !== '';
+
+            updateReqStyle('req-len', hasLen);
+            updateReqStyle('req-up', hasUpper);
+            updateReqStyle('req-num', hasNum);
+            updateReqStyle('req-match', matches);
+
+            regSubmit.disabled = !(hasLen && hasUpper && hasNum && matches);
+            regSubmit.style.opacity = regSubmit.disabled ? '0.6' : '1';
+        }
+
+        function updateReqStyle(id, isValid) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const icon = el.querySelector('i');
+            if (isValid) {
+                el.style.color = '#10B981'; // Success Green
+                icon.className = 'fas fa-check-circle';
+            } else {
+                el.style.color = '#6B7280'; // Gray
+                icon.className = 'fas fa-circle';
+            }
+        }
+
+        if (regPass && regConf) {
+            regPass.addEventListener('input', validateRegForm);
+            regConf.addEventListener('input', validateRegForm);
+            // Initial check
+            validateRegForm();
         }
         
         function googleLogin() {
