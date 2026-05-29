@@ -17,10 +17,26 @@ const isTouchDevice = () => {
     );
 };
 
+// Set custom VH variable to handle mobile viewport properly (handles keyboard and address bar)
+const updateVh = () => {
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+};
+
 // Handle window resize
+let initialHeight = window.innerHeight;
 window.addEventListener('resize', () => {
+    updateVh();
     const newIsMobile = window.innerWidth < 768;
     
+    // Virtual keyboard detection: height shrinks significantly
+    if (window.innerHeight < initialHeight * 0.8) {
+        document.body.classList.add('keyboard-open');
+    } else {
+        initialHeight = window.innerHeight;
+        document.body.classList.remove('keyboard-open');
+    }
+
     if (newIsMobile !== isMobile) {
         // Viewport changed
         console.log('Viewport changed');
@@ -81,17 +97,6 @@ document.body.addEventListener('touchmove', function(e) {
     // e.preventDefault(); // This can break natural scrolling if used globally
 }, { passive: true });
 
-// Virtual keyboard detection (iOS)
-let windowHeight = window.innerHeight;
-window.addEventListener('resize', () => {
-    if (window.innerHeight < windowHeight * 0.75) {
-        // Keyboard is open
-        document.body.classList.add('keyboard-open');
-    } else {
-        document.body.classList.remove('keyboard-open');
-    }
-});
-
 /**
  * Mobile-ready enhancements
  */
@@ -102,4 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isTouchDevice()) {
         document.body.classList.add('touch-device');
     }
+    
+    // Initialize VH units
+    updateVh();
 });

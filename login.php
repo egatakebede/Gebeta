@@ -1,14 +1,12 @@
 <?php
-session_start();
+require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/db.php';
 
 // If already logged in, redirect to appropriate dashboard
 if (isset($_SESSION['user']) && !empty($_SESSION['user']['id'])) {
     $role = $_SESSION['user']['role'] ?? 'customer';
     redirect(get_dashboard_url($role));
 }
-
-require_once __DIR__ . '/includes/functions.php';
-require_once __DIR__ . '/includes/db.php';
 
 $error = flash_get('login_error') ?? '';
 
@@ -33,7 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 flash_set('login_error', $msg);
                 redirect('/index.php');
             } else {
-                require_once __DIR__ . '/includes/auth.php';
                 login_user($user);
 
                 // Redirect based on role
@@ -69,6 +66,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             justify-content: center;
         }
+
+        /* Ensure content doesn't get clipped on small screens */
+        @media (max-width: 480px), (max-height: 700px) {
+            body { display: block; height: auto; min-height: 100vh; padding: 20px; }
+            .login-container { margin: 0 auto; }
+
+            body.keyboard-open .login-container {
+                margin-top: 0;
+            }
+        }
         
         .login-container {
             background: white;
@@ -76,12 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 400px;
-            padding: 2rem;
+            padding: 1.25rem;
         }
         
         .login-header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
         
         .logo {
@@ -111,20 +118,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
         
         .form-label {
             display: block;
             font-weight: 500;
             color: #374151;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
             font-size: 0.875rem;
         }
         
         .form-input {
             width: 100%;
-            padding: 0.75rem;
+            padding: 0.6rem;
             border: 1px solid #D1D5DB;
             border-radius: 0.5rem;
             font-size: 0.875rem;
@@ -221,29 +228,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 >
             </div>
             
-            <button type="submit" class="btn">Sign In</button>
+            <button type="submit" class="login-btn">Sign In</button>
         </form>
 
-        <div class="links">
+        <div class="links" style="display: flex; justify-content: space-between; margin-top: 1rem; font-size: 0.8rem;">
             <a href="/register.php">Create Account</a>
             <a href="/forgot-password.php">Forgot Password?</a>
         </div>
         
-        <div class="divider">
-            <div class="divider-line"></div>
-            <div class="divider-text">TEST ACCOUNTS</div>
-            <div class="divider-line"></div>
-        </div>
-        
-        <div class="test-accounts">
-            <strong>Email: admin@gebeta.com</strong>
-            <div class="test-account-item">Password: password123</div>
-            
-            <strong style="margin-top: 0.5rem;">Email: customer@test.com</strong>
-            <div class="test-account-item">Password: password123</div>
-            
-            <strong style="margin-top: 0.5rem;">Email: yod@restaurant.com</strong>
-            <div class="test-account-item">Password: password123</div>
+        <div class="test-accounts" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #eee; font-size: 11px; color: #999; text-align: center;">
+            <div>Admin: admin@gebeta.com (password123)</div>
+            <div>User: customer@test.com (password123)</div>
         </div>
     </div>
 </body>

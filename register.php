@@ -127,11 +127,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             justify-content: center;
             padding: 20px;
+            margin: 0;
+        }
+
+        /* Ensure content doesn't get clipped on small screens */
+        @media (max-width: 480px), (max-height: 700px) {
+            body { display: block; height: auto; min-height: 100vh; }
+            .container { margin: 10px auto; padding: 1.25rem; }
+            .header { margin-bottom: 1rem; }
+            
+            body.keyboard-open .container {
+                margin-top: 10px;
+            }
         }
         
         .container {
             background: white;
-            padding: 2rem;
+            padding: 1rem 1.25rem;
             border-radius: 1rem;
             width: 100%;
             max-width: 450px;
@@ -140,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
         
         .logo-icon {
@@ -180,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 0.4rem;
         }
         
         .form-label {
@@ -194,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-input,
         .form-select {
             width: 100%;
-            padding: 0.75rem;
+            padding: 0.6rem;
             border: 1px solid #D1D5DB;
             border-radius: 0.5rem;
             font-size: 0.875rem;
@@ -247,7 +259,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .password-requirements {
             background: #F9FAFB;
-            padding: 1rem;
+            padding: 0.5rem 0.75rem;
             border-radius: 0.5rem;
             margin-top: 1rem;
             font-size: 0.75rem;
@@ -418,7 +430,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         submitBtn.disabled = true;
                     }
                 } catch (error) {
-                    console.error('Error checking email:', error);
+ ust reduce                    console.error('Error checking email:', error);
                 }
             }, 500);
         });

@@ -117,6 +117,17 @@ function openModal(id) {
     overlay.classList.add('active');
     sheet.classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    // Auto-focus on the first empty input field after the animation
+    setTimeout(() => {
+        const inputs = sheet.querySelectorAll('input:not([type="hidden"]), textarea, select');
+        for (let input of inputs) {
+            if (!input.value.trim()) {
+                input.focus();
+                break;
+            }
+        }
+    }, 350);
 }
 
 function closeModal(id) {

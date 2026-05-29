@@ -32,7 +32,7 @@ require_once __DIR__ . '/includes/functions.php';
 // Check for login error from redirect
 $loginError = flash_get('login_error');
 $registerError = flash_get('register_error');
-$forgotError = flash_get('forgot_error');
+$forlgotError = flash_get('forgot_error');
  
 // Safe stats fetching with fallbacks
 $totalRestaurants = 0;
@@ -298,7 +298,7 @@ if (empty($topRestaurants)) {
         .nav-actions { display: flex; gap: 1rem; }
         
         .sign-btn {
-            padding: 0.7rem 1.8rem;
+            padding: 0.5rem 1.3rem;
             background: white;
             border: 2px solid var(--gray-200);
             border-radius: 40px;
@@ -406,7 +406,7 @@ if (empty($topRestaurants)) {
         }
         
         .hero-search-form .primary-btn {
-            padding: 1rem 2rem;
+            padding: 0.8rem 1.5rem;
             background: var(--primary);
             color: white;
             border: none;
@@ -429,7 +429,7 @@ if (empty($topRestaurants)) {
         }
         
         .pill-button {
-            padding: 0.6rem 1.2rem;
+            padding: 0.5rem 1rem;
             background: white;
             border: 1px solid var(--gray-200);
             border-radius: 40px;
@@ -811,7 +811,7 @@ if (empty($topRestaurants)) {
             align-items: center;
             gap: 0.8rem;
             background: rgba(255,255,255,0.1);
-            padding: 1rem 2rem;
+            padding: 0.8rem 1.5rem;
             border-radius: 1rem;
             text-decoration: none;
             color: white;
@@ -921,7 +921,8 @@ if (empty($topRestaurants)) {
             width: 90%;
             max-width: 450px;
             z-index: 1001;
-            overflow: hidden;
+            max-height: none;
+            overflow: visible;
         }
         
         .modal.active { display: block; }
@@ -957,7 +958,7 @@ if (empty($topRestaurants)) {
         
         .form-group input {
             width: 100%;
-            padding: 0.8rem 1rem;
+            padding: 0.6rem 0.9rem;
             border: 2px solid var(--gray-200);
             border-radius: 0.8rem;
             font-size: 0.9rem;
@@ -970,7 +971,7 @@ if (empty($topRestaurants)) {
         
         .modal-btn {
             width: 100%;
-            padding: 0.8rem;
+            padding: 0.7rem;
             background: var(--primary);
             color: white;
             border: none;
@@ -1016,7 +1017,7 @@ if (empty($topRestaurants)) {
         
         .divider {
             text-align: center;
-            margin: 1.5rem 0;
+            margin: 0.75rem 0;
             position: relative;
             color: var(--gray-400);
         }
@@ -1036,7 +1037,7 @@ if (empty($topRestaurants)) {
         
         .google-btn {
             width: 100%;
-            padding: 0.8rem;
+            padding: 0.7rem;
             background: white;
             border: 2px solid var(--gray-200);
             border-radius: 0.8rem;
@@ -1095,12 +1096,28 @@ if (empty($topRestaurants)) {
             .section-header-center h2 { font-size: 1.8rem; }
             .social-icons { justify-content: center; }
             .floating-cart { bottom: 80px; }
-            .ad-popup { right: 15px; left: 15px; width: auto; bottom: 150px; }
-            .welcome-popup { width: 95%; max-height: 90vh; overflow-y: auto; }
-            .welcome-popup .popup-header { padding: 1.5rem 1rem; }
-            .welcome-popup .popup-body { padding: 1.5rem 1rem; }
+            .hero-search-form {
+                flex-direction: column;
+                border-radius: 20px;
+                padding: 0.5rem;
+            }
+            .ad-popup { right: 10px; left: 10px; width: auto; bottom: 130px; }
+            .welcome-popup { width: 95%; max-height: 85vh; overflow-y: auto; }
+            .welcome-popup .popup-header { padding: 1rem; }
+            .welcome-popup .popup-body { padding: 1rem; }
             .popup-actions { flex-direction: column; gap: 0.8rem; }
             .popup-actions button { width: 100%; }
+            
+            .modal {
+                top: 20px;
+                transform: translate(-50%, 0);
+                margin-bottom: 20px;
+            }
+            
+            /* Shift modal higher when keyboard is active to maximize visibility */
+            body.keyboard-open .modal {
+                top: 10px;
+            }
         }
 
         /* Welcome Popup */
@@ -1179,7 +1196,7 @@ if (empty($topRestaurants)) {
         }
         
         .popup-actions button {
-            padding: 0.8rem 1.5rem;
+            padding: 0.6rem 1.2rem;
             border-radius: 40px;
             cursor: pointer;
             font-weight: 600;
@@ -1635,14 +1652,14 @@ if (empty($topRestaurants)) {
                     </div>
                 </div>
 
-                <div class="password-requirements" id="reg-requirements" style="background: var(--gray-50); padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 12px;">
-                    <div id="req-len" style="color: var(--gray-500); margin-bottom: 4px;">
+                <div class="password-requirements" id="reg-requirements" style="background: var(--gray-50); padding: 6px 10px; border-radius: 10px; margin-bottom: 10px; font-size: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px;">
+                    <div id="req-len" style="color: var(--gray-500);">
                         <i class="fas fa-circle" style="font-size: 8px;"></i> At least 8 characters
                     </div>
-                    <div id="req-up" style="color: var(--gray-500); margin-bottom: 4px;">
+                    <div id="req-up" style="color: var(--gray-500);">
                         <i class="fas fa-circle" style="font-size: 8px;"></i> One uppercase letter
                     </div>
-                    <div id="req-num" style="color: var(--gray-500); margin-bottom: 4px;">
+                    <div id="req-num" style="color: var(--gray-500);">
                         <i class="fas fa-circle" style="font-size: 8px;"></i> One number
                     </div>
                     <div id="req-match" style="color: var(--gray-500);">
@@ -1813,8 +1830,20 @@ if (empty($topRestaurants)) {
         // Modal Functions
         function openModal(modalId) {
             document.getElementById('modal-overlay').classList.add('active');
-            document.getElementById(modalId).classList.add('active');
+            const modal = document.getElementById(modalId);
+            modal.classList.add('active');
             document.body.style.overflow = 'hidden';
+
+            // Auto-focus feature: find first empty input
+            setTimeout(() => {
+                const inputs = modal.querySelectorAll('input:not([type="hidden"]), textarea, select');
+                for (let input of inputs) {
+                    if (!input.value.trim()) {
+                        input.focus();
+                        break;
+                    }
+                }
+            }, 350);
         }
         
         function closeModal(modalId) {

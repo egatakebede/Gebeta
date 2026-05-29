@@ -99,6 +99,65 @@ if (!$restaurant) {
         .btn-primary   { background:#FC8019; border:none; color:#fff; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:900; }
         .btn-secondary { background:#F5F5F5; border:1px solid #E8E8E8; color:#282C3F; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:900; }
 
+        /* Refined Menu Styles */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 10px;
+        }
+        .menu-card {
+            background: #fff;
+            border: 1px solid #E8E8E8;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .menu-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+            border-color: #FC8019;
+        }
+        .menu-card-img {
+            height: 140px;
+            background: #F3F4F6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            position: relative;
+        }
+        .menu-card-body {
+            padding: 16px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .menu-card-title { font-weight: 800; font-size: 16px; color: #282C3F; }
+        .menu-card-cat { font-size: 11px; color: #FC8019; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .menu-card-desc { font-size: 13px; color: #686B78; line-height: 1.4; min-height: 36px; }
+        .menu-card-footer {
+            padding: 12px 16px;
+            border-top: 1px solid #F3F4F6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #FAFAFA;
+        }
+        .menu-card-price { font-weight: 900; font-size: 16px; color: #282C3F; }
+        .menu-card-sold { font-size: 11px; color: #93959F; margin-top: 2px; font-weight: 600; }
+        
+        .admin-theme.night .menu-card { background: #2d2d2d; border-color: #404040; }
+        .admin-theme.night .menu-card-title { color: #fff; }
+        .admin-theme.night .menu-card-footer { background: #353535; border-top-color: #404040; }
+        .admin-theme.night .menu-card-price { color: #fff; }
+        .admin-theme.night .menu-card-img { background: #3d3d3d; }
+        .admin-theme.night .menu-card-desc { color: #b0b0b0; }
+
         #darkModeToggle {
             background: rgba(255,255,255,0.18);
             border: 1px solid rgba(255,255,255,0.25);
@@ -397,7 +456,7 @@ if (!$restaurant) {
             <section class="section" data-section="menu">
                 <div class="dash-table-wrap">
                     <div class="dash-controls" style="margin-top:0">
-                        <div style="font-weight:900">🍽️ Menu Management</div>
+                        <div style="font-weight:900; font-size: 16px;">🍽️ Menu Management</div>
                         <select class="dash-control" id="menuCategoryFilter"><option value="">All Categories</option></select>
                         <select class="dash-control" id="menuSortBy">
                             <option value="popularity">By Popularity</option>
@@ -405,9 +464,10 @@ if (!$restaurant) {
                             <option value="price">By Price</option>
                             <option value="sales">By Sales</option>
                         </select>
-                        <button class="btn-primary" type="button" onclick="loadMenu(true)">Refresh</button>
+                        <button class="btn-primary" type="button" onclick="window.location='/restaurant/menu.php'">➕ New Item</button>
+                        <button class="btn-secondary" type="button" onclick="loadMenu(true)">Refresh</button>
                     </div>
-                    <div id="menuItemsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px;"></div>
+                    <div id="menuItemsGrid" class="menu-grid"></div>
                 </div>
             </section>
 
@@ -558,9 +618,10 @@ let analyticsOrdersChartInstance = null;
 let analyticsRevenueChartInstance = null;
 let analyticsPeakChartInstance = null;
 
-function destroyChart(chartInstance) {
-    if (chartInstance && typeof chartInstance.destroy === 'function') {
-        chartInstance.destroy();
+function safeDestroy(instanceVar) {
+    if (window[instanceVar]) {
+        window[instanceVar].destroy();
+        window[instanceVar] = null;
     }
 }
 
@@ -616,16 +677,17 @@ document.getElementById('sidebarOverlay').addEventListener('click', function() {
 //  CHARTS - Create once
 // ─────────────────────────────────────────────
 function createOrdersTrendChart(data) {
+    if (typeof Chart === 'undefined') return;
     const canvas = document.getElementById('ordersTrendChart');
     if (!canvas) return;
     
+    safeDestroy('ordersTrendChartInstance');
+
+    const ordersSeries = data?.chart?.orders_trend || [];
+    if (ordersSeries.length === 0) return;
+
     const ctx = canvas.getContext('2d');
     const labels = ['-6d', '-5d', '-4d', '-3d', '-2d', '-1d', 'Today'];
-    const ordersSeries = data?.chart?.orders_trend || [];
-    
-    if (ordersTrendChartInstance) {
-        ordersTrendChartInstance.destroy();
-    }
     
     ordersTrendChartInstance = new Chart(ctx, {
         type: 'line',
@@ -650,16 +712,17 @@ function createOrdersTrendChart(data) {
 }
 
 function createRevenueTrendChart(data) {
+    if (typeof Chart === 'undefined') return;
     const canvas = document.getElementById('revenueTrendChart');
     if (!canvas) return;
     
+    safeDestroy('revenueTrendChartInstance');
+
+    const revenueSeries = data?.chart?.revenue_trend || [];
+    if (revenueSeries.length === 0) return;
+
     const ctx = canvas.getContext('2d');
     const labels = ['-6d', '-5d', '-4d', '-3d', '-2d', '-1d', 'Today'];
-    const revenueSeries = data?.chart?.revenue_trend || [];
-    
-    if (revenueTrendChartInstance) {
-        revenueTrendChartInstance.destroy();
-    }
     
     revenueTrendChartInstance = new Chart(ctx, {
         type: 'line',
@@ -684,23 +747,22 @@ function createRevenueTrendChart(data) {
 }
 
 function createPeakHoursChart(data) {
+    if (typeof Chart === 'undefined') return;
     const canvas = document.getElementById('peakHoursChart');
     if (!canvas) return;
     
-    const ctx = canvas.getContext('2d');
+    safeDestroy('peakHoursChartInstance');
+
     const peak = data?.chart?.peak_hours || [];
-    
     if (peak.length === 0) return;
+
+    const ctx = canvas.getContext('2d');
     
     const peakLabels = peak.map(p => {
         const h = p.hour || p.hr || p.hour_of_day || 0;
         return String(h).padStart(2, '0') + ':00';
     });
     const peakData = peak.map(p => Number(p.revenue || p.revenue_amount || p.amount || 0));
-    
-    if (peakHoursChartInstance) {
-        peakHoursChartInstance.destroy();
-    }
     
     peakHoursChartInstance = new Chart(ctx, {
         type: 'bar',
@@ -961,25 +1023,26 @@ async function loadMenu(reset = false) {
         grid.innerHTML = '';
         (json.data.items || []).forEach(it => {
             const card = document.createElement('div');
-            Object.assign(card.style, {
-                background: '#fff', border: '1px solid #E8E8E8', borderRadius: '12px',
-                overflow: 'hidden', display: 'flex', flexDirection: 'column'
-            });
+            card.className = 'menu-card';
+
             const available = it.is_available !== false;
             card.innerHTML = `
-                <div style="height:130px;background:#E8E8E8;display:flex;align-items:center;justify-content:center;font-size:40px">🍽️</div>
-                <div style="padding:14px;display:flex;flex-direction:column;gap:10px;">
+                <div class="menu-card-img">🍲</div>
+                <div class="menu-card-body">
+                    <div class="menu-card-cat">${escapeHtml(it.category_name || 'Main')}</div>
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
-                        <div>
-                            <div style="font-weight:900">${escapeHtml(it.name || '')}</div>
-                            <div style="font-size:12px;color:#93959F">${escapeHtml(it.category_name || '')}</div>
-                        </div>
+                        <div class="menu-card-title">${escapeHtml(it.name || '')}</div>
                         <span class="status-badge ${available ? 'status-ready' : 'status-pending'}">${available ? 'Available' : 'Unavailable'}</span>
                     </div>
-                    <div style="color:#93959F;font-size:12px;min-height:32px">${escapeHtml(it.description || '')}</div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px solid #E8E8E8;padding-top:10px">
-                        <div><div style="font-size:10px;text-transform:uppercase;color:#93959F">Price</div><div style="font-weight:900">${formatBirr(it.price || 0)} Birr</div></div>
-                        <div><div style="font-size:10px;text-transform:uppercase;color:#93959F">Sold Today</div><div style="font-weight:900">${it.sold_today || 0}</div></div>
+                    <div class="menu-card-desc">${escapeHtml(it.description || 'No description provided.')}</div>
+                </div>
+                <div class="menu-card-footer">
+                    <div>
+                        <div class="menu-card-price">${formatBirr(it.price || 0)} Birr</div>
+                        <div class="menu-card-sold">Sold today: ${it.sold_today || 0}</div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-secondary" style="padding:6px 12px; font-size:12px;" onclick="window.location='/restaurant/menu.php'">Manage</button>
                     </div>
                 </div>`;
             grid.appendChild(card);
@@ -1025,9 +1088,11 @@ async function loadAnalytics(reset = false) {
         const labels = chart.labels || [];
 
         // Destroy old analytics charts
-        if (analyticsOrdersChartInstance) analyticsOrdersChartInstance.destroy();
-        if (analyticsRevenueChartInstance) analyticsRevenueChartInstance.destroy();
-        if (analyticsPeakChartInstance) analyticsPeakChartInstance.destroy();
+        safeDestroy('analyticsOrdersChartInstance');
+        safeDestroy('analyticsRevenueChartInstance');
+        safeDestroy('analyticsPeakChartInstance');
+        
+        if (typeof Chart === 'undefined') return;
 
         const ordersCanvas = document.getElementById('analyticsOrdersChart');
         if (ordersCanvas && chart.orders_trend && chart.orders_trend.length > 0) {
@@ -1251,12 +1316,12 @@ initTheme();
 
 // Clean up on page unload
 window.addEventListener('beforeunload', () => {
-    if (ordersTrendChartInstance) ordersTrendChartInstance.destroy();
-    if (revenueTrendChartInstance) revenueTrendChartInstance.destroy();
-    if (peakHoursChartInstance) peakHoursChartInstance.destroy();
-    if (analyticsOrdersChartInstance) analyticsOrdersChartInstance.destroy();
-    if (analyticsRevenueChartInstance) analyticsRevenueChartInstance.destroy();
-    if (analyticsPeakChartInstance) analyticsPeakChartInstance.destroy();
+    safeDestroy('ordersTrendChartInstance');
+    safeDestroy('revenueTrendChartInstance');
+    safeDestroy('peakHoursChartInstance');
+    safeDestroy('analyticsOrdersChartInstance');
+    safeDestroy('analyticsRevenueChartInstance');
+    safeDestroy('analyticsPeakChartInstance');
 });
 </script>
 

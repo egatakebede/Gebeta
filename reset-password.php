@@ -48,6 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(180deg, var(--bg-orange-tint) 0%, var(--bg-white) 100%);
             padding: 24px 20px;
         }
+
+        /* Ensure content doesn't get clipped on small screens */
+        @media (max-width: 480px), (max-height: 700px) {
+            .reset-wrap { display: block; height: auto; }
+            .reset-card { margin: 0 auto; }
+        }
+
         .reset-card {
             background: #fff;
             border: 1px solid var(--border-gray);
