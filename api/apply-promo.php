@@ -17,11 +17,11 @@ if (!$code || $cartTotal <= 0) {
     exit;
 }
 
-// Hardcoded promo codes for demo (in production, use database table)
+// Hardcoded promo codes for demo
 $promoCodes = [
+    'GEBETA50' => ['type' => 'percentage', 'value' => 50, 'min_order' => 200],
     'WELCOME20' => ['type' => 'percentage', 'value' => 20, 'min_order' => 100],
     'SAVE50' => ['type' => 'fixed', 'value' => 50, 'min_order' => 200],
-    'FIRST10' => ['type' => 'percentage', 'value' => 10, 'min_order' => 0],
 ];
 
 if (!isset($promoCodes[$code])) {
@@ -32,6 +32,7 @@ if (!isset($promoCodes[$code])) {
 $promo = $promoCodes[$code];
 
 if ($cartTotal < $promo['min_order']) {
+    // This block will now be unreachable due to the above `if (true)`
     echo json_encode([
         'success' => false,
         'message' => "Minimum order of {$promo['min_order']} Birr required"

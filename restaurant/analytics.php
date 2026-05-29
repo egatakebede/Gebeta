@@ -22,9 +22,6 @@ $stmt = $pdo->prepare('SELECT status, COUNT(*) AS count FROM orders WHERE restau
 $stmt->execute([$restaurant['id']]);
 $statusBreakdown = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Fix: Remove the undefined function or define it
-// $cartCount = get_cart_count(); // This function doesn't exist
-
 // Get pending orders count
 $stmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE restaurant_id = ? AND status = "pending"');
 $stmt->execute([$restaurant['id']]);

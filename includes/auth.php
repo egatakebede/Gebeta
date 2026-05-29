@@ -1,61 +1,66 @@
 <?php
-// Set custom session path to avoid permission issues
-session_save_path('/tmp/gebeta_sessions');
-if (!is_dir('/tmp/gebeta_sessions')) {
-    mkdir('/tmp/gebeta_sessions', 0777, true);
-}
+require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/db.php';
 
-// Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-function is_logged_in() {
-    return isset($_SESSION['user']) && isset($_SESSION['user']['id']);
+function current_user() {
+    return isset($_SESSION['user']) ? $_SESSION['user'] : null;
 }
 
-function require_login($roles = []) {
-    // If not logged in, redirect to login
+function is_logged_in() {
+    return !empty($_SESSION['user']) && !empty($_SESSION['user']['id']);
+}
+
+function get_dashboard_url($role) {
+    return match ($role) {
+        'admin'      => '/admin/dashboard.php',
+        'restaurant' => '/restaurant/dashboard.php',
+        'delivery'   => '/delivery/dashboard.php',
+        default      => '/customer/dashboard.php',
+    };
+}
+
+function require_login(array $roles = []) {
     if (!is_logged_in()) {
-        header('Location: /login.php');
+        redirect('/index.php');
         exit;
     }
     
-    // Check roles if specified
     if (!empty($roles)) {
         $userRole = $_SESSION['user']['role'] ?? '';
-        if (!in_array($userRole, $roles)) {
-            // Redirect to appropriate dashboard
-            switch($userRole) {
-                case 'admin': 
-                    header('Location: /admin/dashboard.php'); 
-                    break;
-                case 'restaurant': 
-                    header('Location: /restaurant/dashboard.php'); 
-                    break;
-                default: 
-                    header('Location: /customer/dashboard.php');
-            }
+        $currentPath = $_SERVER['PHP_SELF'];
+
+        if (!in_array($userRole, $roles, true)) {
+            if ($userRole === 'admin' && strpos($currentPath, '/admin/') === false) redirect('/admin/dashboard.php');
+            elseif ($userRole === 'restaurant' && strpos($currentPath, '/restaurant/') === false) redirect('/restaurant/dashboard.php');
+            elseif ($userRole === 'delivery' && strpos($currentPath, '/delivery/') === false) redirect('/delivery/dashboard.php');
+            elseif ($userRole !== 'admin' && $userRole !== 'restaurant' && $userRole !== 'delivery' && strpos($currentPath, '/customer/') === false) redirect('/customer/dashboard.php');
             exit;
         }
     }
 }
 
-function current_user() {
-    return $_SESSION['user'] ?? null;
-}
-
-function login_user($user) {
+function login_user(array $user) {
+    session_regenerate_id(true);
     $_SESSION['user'] = [
-        'id' => $user['id'],
+        'id' => (int)$user['id'],
         'name' => $user['name'],
         'email' => $user['email'],
-        'role' => $user['role']
+        'phone' => $user['phone'] ?? '',
+        'role' => $user['role'],
+        'login_time' => time()
     ];
 }
 
 function logout_user() {
     $_SESSION = array();
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
+    }
     session_destroy();
 }
 ?>

@@ -3,11 +3,13 @@ require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
+    
     $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
     
     if (!$email) {
-        flash_set('error', 'Please enter a valid email address.');
-        redirect('/forgot-password.php');
+        flash_set('forgot_error', 'Please enter a valid email address.');
+        header('Location: /forgot-password.php'); exit;
     }
     
     $stmt = $pdo->prepare('SELECT id, name FROM users WHERE email = ? LIMIT 1');
@@ -15,8 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$user) {
-        flash_set('error', 'No account found with that email.');
-        redirect('/forgot-password.php');
+        flash_set('forgot_error', 'No account found with that email.');
+        header('Location: /forgot-password.php'); exit;
     }
     
     $_SESSION['pending_reset'] = [
@@ -25,10 +27,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'name' => $user['name']
     ];
     
-    // Send OTP email (even if email fails, OTP is stored in DB)
-    send_otp_email($email, $user['name'], 'reset');
-    
-    redirect('/verify.php?purpose=reset');
+    // Dispatch OTP
+    $sent = send_otp_email($email, $user['name'], 'reset');
+    if (!$sent) {
+        // We still redirect to verify.php because they can try "Resend" 
+        // or check the server debug logs for the code.
+        flash_set('forgot_error', 'There was an issue sending the email, but you can request a resend shortly.');
+    }
+    header('Location: /verify.php?purpose=reset'); exit;
 }
 ?><!DOCTYPE html>
 <html lang="en">
@@ -68,19 +74,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <h1>Forgot Password?</h1>
             <p>Enter your email and we'll send you a code to reset your password.</p>
             
-            <?php if ($error = flash_get('error')): ?>
+            <?php if ($error = flash_get('forgot_error')): ?>
                 <div style="background:#FFF0F0;border:1px solid #FFCDD2;color:var(--error-red);border-radius:12px;padding:10px 14px;font-size:13px;margin-bottom:16px;">
                     <?= htmlspecialchars($error) ?>
                 </div>
             <?php endif; ?>
             
             <form method="post">
-                <label>Email</label>
+                <?= csrf_field() ?>
                 <input type="email" name="email" placeholder="you@example.com" required autofocus>
                 <button class="primary-btn" type="submit">Send Reset Code</button>
             </form>
             
-            <a class="back-link" href="/index.php">← Back to login</a>
+            <a class="back-link" href="/login.php">← Back to login</a>
         </div>
     </div>
 </body>

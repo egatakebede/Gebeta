@@ -11,9 +11,8 @@ require_login();
 $user_id = $_SESSION['user']['id'];
 $enabled = (bool)$enabled;
 
-try {
-    // No notifications table exists in this repo snapshot.
-    // Store preference in session for now.
+try { // This block is now just a placeholder for future database integration
+    // For now, preference is stored in session.
     $_SESSION['notifications_enabled'] = $enabled;
 
     jsonResponse([
@@ -23,4 +22,3 @@ try {
 } catch (Exception $e) {
     jsonResponse(['success' => false, 'message' => 'Error'], 500);
 }
-

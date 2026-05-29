@@ -234,7 +234,7 @@ if (!$restaurant) {
                     <button class="btn-refresh" id="refreshDashboardBtn" type="button">
                         🔄 Refresh Dashboard
                     </button>
-                    <button class="dash-header-btn" type="button" onclick="goTab('analytics')">📊 Reports</button>
+                    <button class="dash-header-btn" type="button" onclick="goTab('analytics')">📊 Analytics</button>
                     <button class="dash-header-btn" type="button" onclick="goTab('settings')">⚙️ Settings</button>
                     <button class="dash-header-btn" type="button" onclick="window.location='/restaurant/profile.php'">👤 Profile</button>
                 </div>
@@ -272,7 +272,7 @@ if (!$restaurant) {
                     <button class="dash-action-btn" type="button" onclick="goTab('menu')">➕ Add Menu Item</button>
                     <button class="dash-action-btn" type="button" onclick="goTab('orders')">📋 View Orders</button>
                     <button class="dash-action-btn" type="button" onclick="goTab('customers')">👥 Customers</button>
-                    <button class="dash-action-btn" type="button" onclick="goTab('analytics')">📊 Reports</button>
+                    <button class="dash-action-btn" type="button" onclick="goTab('analytics')">📊 Analytics</button>
                     <button class="dash-action-btn" type="button" onclick="goTab('finance')">🧾 Finance</button>
                     <button class="dash-action-btn" type="button" onclick="goTab('marketing')">📢 Promotions</button>
                 </div>
@@ -779,9 +779,9 @@ async function loadDashboardData() {
         }
 
         // Create charts (only once)
-        if (!ordersTrendChartInstance) createOrdersTrendChart(d);
-        if (!revenueTrendChartInstance) createRevenueTrendChart(d);
-        if (!peakHoursChartInstance) createPeakHoursChart(d);
+        createOrdersTrendChart(d);
+        createRevenueTrendChart(d);
+        createPeakHoursChart(d);
         
         renderTopItems(d.top_items, 'topItemsList');
         renderRecentOrders(d.recent_orders);

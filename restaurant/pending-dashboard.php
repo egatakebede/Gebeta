@@ -128,7 +128,7 @@
                 </div>
                 <div class="info-item">
                     <span>Location</span>
-                    <span><strong>Location:</strong> <?= htmlspecialchars($restaurant['address']) ?></span>
+                    <span><strong>Location:</strong> <?= htmlspecialchars($restaurant['location']) ?></span>
                 </div>
                 <div class="info-item">
                     <span>Phone</span>

@@ -1,12 +1,13 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
-require_login(array('customer'));
 require_once __DIR__ . '/../includes/db.php';
+
+require_login(['customer']);
 
 $userId = $_SESSION['user']['id'];
 $userName = $_SESSION['user']['name'];
 
-// Get customer stats
+// Rest of your code continues...
 $stmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE user_id = ?');
 $stmt->execute(array($userId));
 $totalOrders = $stmt->fetchColumn();

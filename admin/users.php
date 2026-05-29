@@ -68,7 +68,7 @@ if ($filter === 'customer') {
 } elseif ($filter === 'restaurant') {
     $query .= ' AND role = ?';
     $countQuery .= ' AND role = ?';
-    $params[] = 'restaurant_owner';
+    $params[] = 'restaurant';
 } elseif ($filter === 'admin') {
     $query .= ' AND role = ?';
     $countQuery .= ' AND role = ?';
@@ -104,7 +104,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Get counts for stats
 $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'customer'");
 $totalCustomers = $stmt->fetchColumn();
-$stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'restaurant_owner'");
+$stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'restaurant'");
 $totalRestaurants = $stmt->fetchColumn();
 $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'");
 $totalAdmins = $stmt->fetchColumn();
@@ -605,7 +605,7 @@ $totalAll = $stmt->fetchColumn();
         }
         
         .role-badge.customer { background: var(--info-light); color: var(--info); }
-        .role-badge.restaurant_owner { background: var(--warning-light); color: var(--warning); }
+        .role-badge.restaurant { background: var(--warning-light); color: var(--warning); }
         .role-badge.admin { background: var(--danger-light); color: var(--danger); }
         
         .status-badge.active { background: var(--success-light); color: var(--success); }
@@ -1011,7 +1011,7 @@ $totalAll = $stmt->fetchColumn();
                                     </td>
                                     <td><?= htmlspecialchars($user['email']) ?></td>
                                     <td><?= htmlspecialchars($user['phone'] ?? 'N/A') ?></td>
-                                    <td><span class="role-badge <?= $user['role'] ?>"><?= $user['role'] === 'restaurant_owner' ? 'Restaurant' : ucfirst($user['role']) ?></span></td>
+                                    <td><span class="role-badge <?= $user['role'] ?>"><?= $user['role'] === 'restaurant' ? 'Restaurant Owner' : ucfirst($user['role']) ?></span></td>
                                     <td><span class="status-badge <?= $user['status'] ?>"><?= ucfirst($user['status']) ?></span></td>
                                     <td><?= date('M d, Y', strtotime($user['created_at'])) ?></td>
                                     <td>
@@ -1098,7 +1098,7 @@ $totalAll = $stmt->fetchColumn();
                         <label>Role *</label>
                         <select name="role" required>
                             <option value="customer">Customer</option>
-                            <option value="restaurant_owner">Restaurant Owner</option>
+                            <option value="restaurant">Restaurant Owner</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>

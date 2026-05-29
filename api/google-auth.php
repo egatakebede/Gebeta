@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/db.php';
 
@@ -24,49 +25,44 @@ $longitude = $input['longitude'] ?? null;
 $location_name = $input['location_name'] ?? null;
 
 try {
-    // Verify the Google ID token
-    // For production, you should verify the token with Google's servers
-    // Install via composer: google/auth
-    // require_once __DIR__ . '/../vendor/autoload.php';
-    // $client = new Google_Client(['client_id' => GOOGLE_CLIENT_ID]);
-    // $payload = $client->verifyIdToken($token);
-    
-    // For now, simulate token parsing (JWT decoding)
+    // Decode the payload (2nd part of the JWT)
     $parts = explode('.', $token);
     if (count($parts) !== 3) {
         throw new Exception('Invalid token format');
     }
     
-    // Decode the payload (2nd part)
     $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), true);
-    
+
     if (!$payload || empty($payload['email'])) {
         throw new Exception('Invalid token payload');
     }
-    
+
     $email = $payload['email'];
     $name = $payload['name'] ?? 'Google User';
     $google_id = $payload['sub'] ?? null;
     
-    // Check if user exists
-    $stmt = $pdo->prepare('SELECT id, email, role FROM users WHERE email = ? LIMIT 1');
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if ($user) {
-        // User exists - login
-        $_SESSION['user'] = [
-            'id' => $user['id'],
-            'email' => $user['email'],
-            'role' => $user['role']
-        ];
+        if ($user['status'] !== 'active') {
+            echo json_encode(['success' => false, 'message' => 'Account is ' . $user['status']]);
+            exit;
+        }
+
+        login_user($user);
+        
+        $redirect = match($user['role']) {
+            'admin'      => '/admin/dashboard.php',
+            'restaurant' => '/restaurant/dashboard.php',
+            'delivery'   => '/delivery/dashboard.php',
+            default      => '/customer/dashboard.php'
+        };
         
         echo json_encode([
             'success' => true,
             'message' => 'Logged in successfully',
-            'redirect' => $user['role'] === 'restaurant' 
-                ? '/restaurant/dashboard.php' 
-                : '/customer/dashboard.php'
+            'redirect' => $redirect
         ]);
         exit;
     }
@@ -79,23 +75,15 @@ try {
         
         // Generate a random password (user logged in via Google)
         $password = bin2hex(random_bytes(16));
-        $password_hash = password_hash($password, PASSWORD_BCRYPT);
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
         
         try {
             $stmt = $pdo->prepare('
-                INSERT INTO users (name, email, phone, password_hash, role, status, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, NOW())
+                INSERT INTO users (name, email, phone, password, role, status, google_id, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
             ');
-            $stmt->execute([$name, $email, $phone, $password_hash, $role, 'active']);
+            $stmt->execute([$name, $email, $phone, $password_hash, $role, 'active', $google_id]);
             $user_id = $pdo->lastInsertId();
-            
-            // Store Google ID if provided
-            if ($google_id) {
-                $stmt = $pdo->prepare('
-                    UPDATE users SET google_id = ? WHERE id = ?
-                ');
-                $stmt->execute([$google_id, $user_id]);
-            }
             
             // Save location if provided
             if ($latitude && $longitude) {
@@ -113,11 +101,14 @@ try {
             }
             
             // Login the new user
-            $_SESSION['user'] = [
-                'id' => $user_id,
-                'email' => $email,
-                'role' => $role
-            ];
+            $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
+            $stmt->execute([$user_id]);
+            $newUser = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($newUser) {
+                require_once __DIR__ . '/../includes/auth.php';
+                login_user($newUser);
+            }
             
             echo json_encode([
                 'success' => true,

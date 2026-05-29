@@ -6,12 +6,15 @@ $purpose = in_array($_GET['purpose'] ?? '', ['register', 'reset'], true) ? $_GET
 
 // Guard: must have a pending session for this purpose
 if ($purpose === 'register' && empty($_SESSION['pending_register'])) {
+    flash_set('register_error', 'Your verification session has expired. Please try registering again.');
     redirect('/index.php');
 }
 if ($purpose === 'reset' && empty($_SESSION['pending_reset'])) {
+    flash_set('error', 'Your reset session has expired. Please request a new code.');
     redirect('/forgot-password.php');
 }
 if (!$purpose) {
+    flash_set('login_error', 'Invalid access attempt.');
     redirect('/index.php');
 }
 
@@ -22,6 +25,8 @@ $email = $purpose === 'register'
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
+
     $code = trim(implode('', array_map(fn($i) => $_POST["d$i"] ?? '', range(1, 6))));
     $code = preg_replace('/\D/', '', $code);
 
@@ -34,14 +39,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         if ($purpose === 'register') {
             $p = $_SESSION['pending_register'];
-            $stmt = $pdo->prepare('INSERT INTO users (name, email, phone, password, role, latitude, longitude, location_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-            $stmt->execute([$p['name'], $p['email'], $p['phone'], $p['password'], $p['role'], $p['latitude'], $p['longitude'], $p['location_name']]);
-            $userId = $pdo->lastInsertId();
-            $user = $pdo->prepare('SELECT * FROM users WHERE id = ?');
-            $user->execute([$userId]);
-            login_user($user->fetch(PDO::FETCH_ASSOC));
-            unset($_SESSION['pending_register']);
-            redirect('/select-role.php');
+            try {
+                // Insert new user as active since email is now verified
+                $stmt = $pdo->prepare('INSERT INTO users (name, email, phone, password, role, status, latitude, longitude, location_name, created_at) VALUES (?, ?, ?, ?, ?, "active", ?, ?, ?, NOW())');
+                $stmt->execute([$p['name'], $p['email'], $p['phone'], $p['password'], $p['role'], $p['latitude'], $p['longitude'], $p['location_name']]);
+                $userId = $pdo->lastInsertId();
+                
+                $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
+                $stmt->execute([$userId]);
+                $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                login_user($userData);
+                unset($_SESSION['pending_register']);
+
+                redirect(get_dashboard_url($userData['role']));
+            } catch (PDOException $e) {
+                $error = "Registration failed. Please try again.";
+            }
         } else {
             $_SESSION['reset_verified'] = [
                 'user_id' => $_SESSION['pending_reset']['user_id']
@@ -152,10 +166,11 @@ $title = $purpose === 'register' ? 'Verify your email' : 'Reset your password';
             <p>We sent a 6-digit code to<br><strong><?= htmlspecialchars($maskedEmail) ?></strong></p>
 
             <?php if ($error): ?>
-                <div class="error-msg"><?= htmlspecialchars($error) ?></div>
+                <div class="error-msg" style="margin-bottom: 20px;"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>
 
             <form method="post" id="otp-form">
+                <?= csrf_field() ?>
                 <div class="otp-inputs">
                     <input type="tel" name="d1" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code" required>
                     <input type="tel" name="d2" maxlength="1" inputmode="numeric" pattern="[0-9]" required>

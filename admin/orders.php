@@ -766,12 +766,6 @@ $totalRevenue = $stmt->fetchColumn() ?: 0;
                     <span>Delivery</span>
                 </a>
                 
-                <div class="nav-section-title">REPORTS</div>
-                <a href="/admin/reports.php" class="nav-item">
-                    <span>📄</span>
-                    <span>Reports</span>
-                </a>
-                
                 <div class="nav-section-title">ACCOUNT</div>
                 <a href="/logout.php" class="nav-item">
                     <span>🚪</span>

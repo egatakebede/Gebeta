@@ -37,7 +37,7 @@ try {
         $pendingAmount = 0;
     }
 
-    // Commission/net: fallback to 15% commission if no actual model.
+    // Commission/net: This is a simplified calculation. In production, use a proper financial model.
     $commission = $revenueToday * 0.15;
     $netEarn = $revenueToday - $commission;
 
@@ -67,4 +67,3 @@ try {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => 'Server error']);
 }
-

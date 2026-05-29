@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
     $name = sanitize($_POST['name'] ?? '');
     $description = sanitize($_POST['description'] ?? '');
-    $price = number_format(max(0, (float)($_POST['price'] ?? 0)), 2);
+    $price = round(max(0, (float)($_POST['price'] ?? 0)), 2);
     $categoryName = sanitize($_POST['category'] ?? 'Main');
     if ($name && $price > 0) {
         $stmt = $pdo->prepare('SELECT id FROM categories WHERE restaurant_id = ? AND name = ? LIMIT 1');
@@ -76,23 +76,39 @@ $cartCount = get_cart_count();
                 <div class="empty-state">No menu items yet. Add your first dish.</div>
             <?php else: ?>
                 <?php foreach ($items as $item): ?>
-                    <div class="menu-item-card">
+                    <div class="menu-item-card" id="item-<?= $item['id'] ?>">
                         <div>
                             <h3><?= htmlspecialchars($item['name']) ?> <span class="tag"><?= htmlspecialchars($item['category_name']) ?></span></h3>
                             <p><?= htmlspecialchars($item['description']) ?></p>
                             <strong><?= format_price($item['price']) ?></strong>
                         </div>
-                        <span class="availability <?= $item['is_available'] ? 'active' : '' ?>"><?= $item['is_available'] ? 'Available' : 'Unavailable' ?></span>
+                        <div style="text-align:right">
+                            <span class="availability <?= $item['is_available'] ? 'active' : '' ?>"><?= $item['is_available'] ? 'Available' : 'Unavailable' ?></span>
+                            <button onclick="deleteItem(<?= $item['id'] ?>)" style="display:block;margin-top:10px;color:red;background:none;border:none;cursor:pointer;font-size:12px;">🗑 Delete</button>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
         </section>
     </main>
     <footer class="bottom-bar">
-        <a href="/restaurant/dashboard.php">Home Dashboard</a>
-        <a href="/restaurant/menu.php">Menu Menu</a>
-        <a href="/restaurant/analytics.php">Analytics Analytics</a>
-        <a href="/restaurant/profile.php">Profile Profile</a>
+        <a href="/restaurant/dashboard.php">🏠 Dashboard</a>
+        <a href="/restaurant/menu.php">🍽️ Menu</a>
+        <a href="/restaurant/analytics.php">📊 Analytics</a>
+        <a href="/restaurant/profile.php">👤 Profile</a>
     </footer>
+
+    <script>
+    async function deleteItem(id) {
+        if (!confirm('Are you sure you want to delete this item?')) return;
+        const res = await fetch('/api/delete-menu-item.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `id=${id}`
+        });
+        const data = await res.json();
+        if (data.success) document.getElementById(`item-${id}`).remove();
+    }
+    </script>
 </body>
 </html>

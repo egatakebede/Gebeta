@@ -114,47 +114,18 @@ function openModal(id) {
     const overlay = document.getElementById('modal-overlay');
     const sheet   = document.getElementById(id);
     if (!sheet) return;
-    overlay.classList.add('visible');
-    sheet.classList.add('visible');
+    overlay.classList.add('active');
+    sheet.classList.add('active');
     document.body.style.overflow = 'hidden';
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-        overlay.classList.add('active');
-        sheet.classList.add('active');
-    }));
 }
 
 function closeModal(id) {
-    const overlay = document.getElementById('modal-overlay');
     const sheet   = document.getElementById(id);
-    if (!sheet) return;
-    overlay.classList.remove('active');
-    sheet.classList.remove('active');
-    setTimeout(() => {
-        overlay.classList.remove('visible');
-        sheet.classList.remove('visible');
+    if (sheet) sheet.classList.remove('active');
+    if (document.querySelectorAll('.modal.active').length === 0) {
+        document.getElementById('modal-overlay').classList.remove('active');
         document.body.style.overflow = '';
-    }, 350);
-}
-
-/* Swipe-down to close */
-function enableSwipeClose(sheetId) {
-    const sheet = document.getElementById(sheetId);
-    if (!sheet) return;
-    let startY = 0;
-    sheet.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
-    sheet.addEventListener('touchmove', e => {
-        const diff = e.touches[0].clientY - startY;
-        if (diff > 0) sheet.style.transform = `translateY(${diff}px)`;
-    }, { passive: true });
-    sheet.addEventListener('touchend', e => {
-        const diff = e.changedTouches[0].clientY - startY;
-        if (diff > 100) {
-            sheet.style.transform = '';
-            closeModal(sheetId);
-        } else {
-            sheet.style.transform = '';
-        }
-    });
+    }
 }
 
 /* ── Cart badge ── */
@@ -510,8 +481,6 @@ function initGoogleLogin(mode) {
     }
     
     // Simulate Google OAuth flow (replace with actual OAuth library)
-    // For production, integrate with Google Sign-In JavaScript library:
-    // https://developers.google.com/identity/sign-in/web/sign-in
     
     window.handleGoogleSignIn = function(response) {
         const token = response.credential;
@@ -552,8 +521,6 @@ function initGoogleLogin(mode) {
         });
     };
     
-    // Open Google Sign-In (requires Google SDK to be loaded)
-    // For testing/demo, you can simulate with prompt
     showToast('Google Sign-In will open in a popup...', 'info');
 }
 

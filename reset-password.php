@@ -7,6 +7,8 @@ if (empty($_SESSION['reset_verified'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
+    
     $password = trim($_POST['password'] ?? '');
     $confirm = trim($_POST['confirm_password'] ?? '');
     
@@ -74,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
             
             <form method="post">
+                <?= csrf_field() ?>
                 <label>New Password</label>
                 <input type="password" name="password" placeholder="At least 6 characters" required autofocus>
                 <label>Confirm Password</label>

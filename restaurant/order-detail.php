@@ -61,19 +61,20 @@ $cartCount = get_cart_count();
             <h2>Update status</h2>
             <form method="post">
                 <?= csrf_field() ?>
+                <select name="status" style="width:100%;padding:10px;border-radius:8px;margin-bottom:10px;border:1px solid #ddd;">
                     <?php foreach (['pending','confirmed','preparing','ready','out_for_delivery','delivered','cancelled'] as $status): ?>
                         <option value="<?= $status ?>" <?= $status === $order['status'] ? 'selected' : '' ?>><?= ucfirst(str_replace('_', ' ', $status)) ?></option>
                     <?php endforeach; ?>
                 </select>
-                <button class="primary-btn" type="submit">Update status</button>
+                <button class="primary-btn" type="submit" style="width:100%">Update status</button>
             </form>
         </section>
     </main>
     <footer class="bottom-bar">
-        <a href="/restaurant/dashboard.php">Home Dashboard</a>
-        <a href="/restaurant/menu.php">Menu Menu</a>
-        <a href="/restaurant/analytics.php">Analytics Analytics</a>
-        <a href="/restaurant/profile.php">Profile Profile</a>
+        <a href="/restaurant/dashboard.php">🏠 Dashboard</a>
+        <a href="/restaurant/menu.php">🍽️ Menu</a>
+        <a href="/restaurant/analytics.php">📊 Analytics</a>
+        <a href="/restaurant/profile.php">👤 Profile</a>
     </footer>
 </body>
 </html>

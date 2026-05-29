@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
     }
     
     if ($action === 'approve') {
-        $stmt = $pdo->prepare('UPDATE restaurants SET status = "active", approved_at = NOW() WHERE id = ?');
+        $stmt = $pdo->prepare('UPDATE restaurants SET status = "active" WHERE id = ?');
         $stmt->execute([$restaurantId]);
         echo json_encode(['success' => true]);
         exit();
@@ -1007,7 +1007,7 @@ $avgRating = $stmt->fetchColumn() ?: 0;
                                                 <div class="restaurant-id">ID: <?= $restaurant['id'] ?></div>
                                             </div>
                                         </div>
-                                    </td
+                                    </td>
                                     <td><span class="cuisine-badge"><?= htmlspecialchars($restaurant['cuisine_type']) ?></span></td>
                                     <td><?= htmlspecialchars($restaurant['location']) ?></td>
                                     <td><?= htmlspecialchars($restaurant['phone'] ?? 'N/A') ?></td>
@@ -1015,7 +1015,7 @@ $avgRating = $stmt->fetchColumn() ?: 0;
                                         <div class="rating-cell">
                                             <span class="stars">⭐ <?= number_format($restaurant['rating'], 1) ?></span>
                                         </div>
-                                    </td
+                                    </td>
                                     <td><span class="status-badge <?= $restaurant['status'] ?>"><?= ucfirst($restaurant['status']) ?></span></td>
                                     <td><strong><?= $restaurant['order_count'] ?></strong></td>
                                     <td>
@@ -1038,7 +1038,7 @@ $avgRating = $stmt->fetchColumn() ?: 0;
                                                 <a class="danger" href="#" onclick="deleteRestaurant(<?= $restaurant['id'] ?>)">🗑 Delete</a>
                                             </div>
                                         </div>
-                                    </td
+                                    </td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>

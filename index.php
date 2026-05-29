@@ -10,7 +10,7 @@ session_start();
 if (isset($_SESSION['user'])) {
     $role = $_SESSION['user']['role'] ?? 'customer';
     
-    if ($role === 'restaurant_owner' || $role === 'restaurant') {
+    if ($role === 'restaurant') {
         header('Location: /restaurant/dashboard.php');
         exit();
     }
@@ -18,7 +18,7 @@ if (isset($_SESSION['user'])) {
         header('Location: /admin/dashboard.php');
         exit();
     }
-    if ($role === 'delivery_partner' || $role === 'delivery') {
+    if ($role === 'delivery') {
         header('Location: /delivery/dashboard.php');
         exit();
     }
@@ -27,64 +27,105 @@ if (isset($_SESSION['user'])) {
 }
 
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/functions.php';
 
-// Get dynamic data from database
+// Check for login error from redirect
+$loginError = flash_get('login_error');
+$registerError = flash_get('register_error');
+$forgotError = flash_get('forgot_error');
+
+// Safe stats fetching with fallbacks
 $totalRestaurants = 0;
-$totalOrders = 0;
-$totalCustomers = 0;
+$totalOrders = 15234;
+$totalCustomers = 8756;
 $avgRating = 4.8;
 
 try {
     $stmt = $pdo->query("SELECT COUNT(*) FROM restaurants WHERE status = 'active'");
     $totalRestaurants = $stmt->fetchColumn() ?: 125;
-    
+} catch (PDOException $e) { 
+    error_log('Error fetching restaurants count: ' . $e->getMessage()); 
+}
+
+try {
     $stmt = $pdo->query("SELECT COUNT(*) FROM orders");
     $totalOrders = $stmt->fetchColumn() ?: 15234;
-    
-    $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'customer'");
-    $totalCustomers = $stmt->fetchColumn() ?: 8756;
-    
+} catch (PDOException $e) { 
+    error_log('Error fetching orders count: ' . $e->getMessage()); 
+}
+
+try {
+    // Check if role column exists
+    $checkStmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'role'");
+    if ($checkStmt->rowCount() > 0) {
+        $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'customer'");
+        $totalCustomers = $stmt->fetchColumn() ?: 8756;
+    } else {
+        $stmt = $pdo->query("SELECT COUNT(*) FROM users");
+        $totalCustomers = $stmt->fetchColumn() ?: 8756;
+    }
+} catch (PDOException $e) { 
+    error_log('Error fetching customers count: ' . $e->getMessage()); 
+}
+
+try {
     $stmt = $pdo->query("SELECT AVG(rating) FROM restaurants WHERE rating > 0");
     $avgRating = number_format($stmt->fetchColumn() ?: 4.8, 1);
-} catch (PDOException $e) {
-    error_log('Error fetching stats: ' . $e->getMessage());
+} catch (PDOException $e) { 
+    error_log('Error fetching avg rating: ' . $e->getMessage()); 
 }
 
 $topRestaurants = [];
-
 $allFoodImages = [
-    'doro-wat.jpg', 'burger.jpg', 'coffee.jpg', 'dorowot.jpeg',
-    'injera.jpg', 'juice.jpg', 'kitfo.jpeg', 'kitfo.jpg',
-    'pizza.jpg', 'tibs.jpeg', 'tibs.jpg', 'ayinet.jpeg'
+    'doro-wat.jpg', 'burger.jpg', 'coffee.jpg', 'injera.jpg', 'tibs.jpg'
 ];
 
 $restaurantImages = [
-    'Yod Abyssinia' => 'doro-wat.jpg',
-    'Kategna' => 'kitfo.jpg',
+    'Yod Abyssinia' => 'tibs.jpg',
+    'Kategna' => 'injera.jpg',
     'Tomoca Coffee' => 'coffee.jpg',
-    'Pizza Hut' => 'pizza.jpg',
-    'Kaldi\'s' => 'coffee.jpg',
-    'Dashen Traditional' => 'injera.jpg',
-    'Mama\'s Kitchen' => 'tibs.jpg',
-    'Green View' => 'juice.jpg',
+    'Pizza Hut' => 'burger.jpg',
+    'Kaldi\'s Coffee' => 'coffee.jpg',
+    'Mama\'s Kitchen' => 'doro-wat.jpg',
 ];
 
 try {
-    $stmt = $pdo->prepare("SELECT id, name, cuisine_type, location, rating, delivery_time, delivery_fee FROM restaurants WHERE status = ? ORDER BY rating DESC LIMIT 6");
+    // Check if delivery_time column exists
+    $hasDeliveryTime = false;
+    try {
+        $checkStmt = $pdo->query("SHOW COLUMNS FROM restaurants LIKE 'delivery_time'");
+        $hasDeliveryTime = $checkStmt->rowCount() > 0;
+    } catch (PDOException $e) { }
+    
+    // Build query based on available columns
+    if ($hasDeliveryTime) {
+        $stmt = $pdo->prepare("SELECT id, name, cuisine_type, location, rating, delivery_time, delivery_fee FROM restaurants WHERE status = ? ORDER BY rating DESC LIMIT 6");
+    } else {
+        $stmt = $pdo->prepare("SELECT id, name, cuisine_type, location, rating, delivery_fee FROM restaurants WHERE status = ? ORDER BY rating DESC LIMIT 6");
+    }
     $stmt->execute(['active']);
     $topRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    error_log('Error fetching restaurants: ' . $e->getMessage());
-}
+    
+    // Add delivery_time if missing
+    foreach ($topRestaurants as &$r) {
+        if (!isset($r['delivery_time']) || empty($r['delivery_time'])) {
+            $r['delivery_time'] = rand(20, 35) . '-' . rand(35, 50);
+        }
+        if (!isset($r['delivery_fee'])) {
+            $r['delivery_fee'] = rand(0, 30);
+        }
+    }
+} catch (PDOException $e) { }
 
+// Fallback data if no restaurants in database
 if (empty($topRestaurants)) {
     $topRestaurants = [
-        ['id' => 1, 'name' => 'Yod Abyssinia', 'cuisine_type' => 'Ethiopian', 'location' => 'Bole', 'rating' => 4.8, 'delivery_time' => '25-35', 'delivery_fee' => 0],
-        ['id' => 2, 'name' => 'Kategna', 'cuisine_type' => 'Ethiopian', 'location' => 'Megenagna', 'rating' => 4.7, 'delivery_time' => '20-30', 'delivery_fee' => 20],
-        ['id' => 3, 'name' => 'Pizza Hut', 'cuisine_type' => 'Pizza', 'location' => 'Bole', 'rating' => 4.5, 'delivery_time' => '30-40', 'delivery_fee' => 30],
-        ['id' => 4, 'name' => 'Tomoca Coffee', 'cuisine_type' => 'Cafe', 'location' => 'Piazza', 'rating' => 4.7, 'delivery_time' => '15-25', 'delivery_fee' => 0],
-        ['id' => 5, 'name' => 'Green View', 'cuisine_type' => 'Juice Bar', 'location' => 'Piazza', 'rating' => 4.4, 'delivery_time' => '20-30', 'delivery_fee' => 15],
-        ['id' => 6, 'name' => 'Awassa Fish', 'cuisine_type' => 'Seafood', 'location' => 'Sidist Kilo', 'rating' => 4.5, 'delivery_time' => '30-45', 'delivery_fee' => 25],
+        ['id' => 1, 'name' => 'Yod Abyssinia', 'cuisine_type' => 'Ethiopian', 'location' => 'Piassa', 'rating' => 4.8, 'delivery_time' => '25-35', 'delivery_fee' => 0],
+        ['id' => 2, 'name' => 'Kategna', 'cuisine_type' => 'Ethiopian', 'location' => 'Bole', 'rating' => 4.7, 'delivery_time' => '20-30', 'delivery_fee' => 20],
+        ['id' => 3, 'name' => 'Tomoca Coffee', 'cuisine_type' => 'Cafe', 'location' => 'Piazza', 'rating' => 4.7, 'delivery_time' => '15-25', 'delivery_fee' => 0],
+        ['id' => 4, 'name' => 'Pizza Hut', 'cuisine_type' => 'Pizza', 'location' => 'Bole', 'rating' => 4.5, 'delivery_time' => '30-40', 'delivery_fee' => 30],
+        ['id' => 5, 'name' => 'Kaldi\'s Coffee', 'cuisine_type' => 'Cafe', 'location' => 'Piazza', 'rating' => 4.6, 'delivery_time' => '10-20', 'delivery_fee' => 15],
+        ['id' => 6, 'name' => 'Mama\'s Kitchen', 'cuisine_type' => 'International', 'location' => 'Megenagna', 'rating' => 4.4, 'delivery_time' => '25-35', 'delivery_fee' => 25],
     ];
 }
 ?>
@@ -97,6 +138,7 @@ if (empty($topRestaurants)) {
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#FC8019">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/assets/js/script.js" defer></script>
     <style>
         * {
             margin: 0;
@@ -1285,7 +1327,7 @@ if (empty($topRestaurants)) {
         <div class="hero-body">
             <div class="hero-copy">
                 <span class="eyebrow animate-fadeLeft">✨ Premium Food Delivery</span>
-                <h1 class="animate-fadeLeft delay-1">Food from Hawassa's<br>finest restaurants</h1>
+                <h1 class="animate-fadeLeft delay-1">Enjoy Tibs, Ayinet &<br>Dorowot in Hawassa</h1>
                 <p class="animate-fadeLeft delay-2">Discover local Ethiopian cuisine and international favorites.<br>Fast delivery, best prices.</p>
 
                 <form action="/customer/dashboard.php" method="get" class="hero-search-form animate-fadeLeft delay-3">
@@ -1305,10 +1347,10 @@ if (empty($topRestaurants)) {
 
             <div class="hero-visual">
                 <div class="hero-card-image hero-card-image--big animate-float">
-                    <img src="/assets/images/food/doro-wat.jpg" alt="Doro Wat">
+                    <img src="/assets/images/food/injera.jpg" alt="Ayinet">
                 </div>
                 <div class="hero-card-image hero-card-image--small animate-float">
-                    <img src="/assets/images/food/burger.jpg" alt="Burger">
+                    <img src="/assets/images/food/doro-wat.jpg" alt="Dorowot">
                 </div>
             </div>
         </div>
@@ -1464,7 +1506,13 @@ if (empty($topRestaurants)) {
             <button class="modal-close" onclick="closeModal('login-modal')">&times;</button>
         </div>
         <div class="modal-body">
-            <form method="POST" action="login.php">
+            <form method="POST" action="login.php" onsubmit="handleFormSubmit(this)">
+                <?= csrf_field() ?>
+                <?php if ($loginError): ?>
+                    <div style="background:#FEE2E2; color:#DC2626; padding:12px; border-radius:12px; margin-bottom:20px; font-size:14px; border:1px solid #FECACA; font-weight:600; text-align:center;">
+                        ❌ <?= htmlspecialchars($loginError) ?>
+                    </div>
+                <?php endif; ?>
                 <div class="form-group">
                     <label>Email Address</label>
                     <input type="email" name="email" placeholder="you@example.com" required>
@@ -1474,12 +1522,15 @@ if (empty($topRestaurants)) {
                     <input type="password" name="password" placeholder="Enter your password" required>
                 </div>
                 <div style="text-align: right; margin-bottom: 1rem;">
-                    <a href="/forgot-password.php" style="color: var(--primary); text-decoration: none; font-size: 0.8rem;">Forgot password?</a>
+                    <button type="button" onclick="switchModal('login-modal', 'forgot-password-modal')" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.8rem; padding: 0;">Forgot password?</button>
                 </div>
+                <input type="hidden" id="login-lat" value="">
+                <input type="hidden" id="login-lng" value="">
+                <input type="hidden" id="login-loc" value="">
                 <button type="submit" class="modal-btn">Sign In</button>
             </form>
             <div class="divider">or</div>
-            <button class="google-btn" onclick="googleLogin()">
+            <button id="google-login-btn" class="google-btn" onclick="googleLogin('login')">
                 <svg width="20" height="20" viewBox="0 0 24 24">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -1501,6 +1552,7 @@ if (empty($topRestaurants)) {
         </div>
         <div class="modal-body">
             <form method="POST" action="register.php">
+                <?= csrf_field() ?>
                 <div class="form-group">
                     <label>Full Name</label>
                     <input type="text" name="name" placeholder="John Doe" required>
@@ -1517,11 +1569,14 @@ if (empty($topRestaurants)) {
                     <label>Password</label>
                     <input type="password" name="password" placeholder="At least 6 characters" required>
                 </div>
+                <input type="hidden" name="latitude" id="reg-lat" value="">
+                <input type="hidden" name="longitude" id="reg-lng" value="">
+                <input type="hidden" name="location_name" id="reg-loc" value="">
                 <input type="hidden" name="role" value="customer">
                 <button type="submit" class="modal-btn">Create Account</button>
             </form>
             <div class="divider">or</div>
-            <button class="google-btn" onclick="googleLogin()">
+            <button id="google-signup-btn" class="google-btn" onclick="googleLogin('signup')">
                 <svg width="20" height="20" viewBox="0 0 24 24">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -1533,6 +1588,29 @@ if (empty($topRestaurants)) {
             <div class="modal-footer-text">
                 Already have an account? <button onclick="switchModal('register-modal', 'login-modal')">Sign in</button>
             </div>
+        </div>
+    </div>
+
+    <div class="modal" id="forgot-password-modal">
+        <div class="modal-header">
+            <h2>Reset Password 🔑</h2>
+            <button class="modal-close" onclick="closeModal('forgot-password-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="color: var(--gray-500); font-size: 0.875rem; margin-bottom: 1.5rem; text-align: center;">Enter your email and we'll send you a code to reset your password.</p>
+            <form method="POST" action="forgot-password.php" onsubmit="handleFormSubmit(this)">
+                <?= csrf_field() ?>
+                <?php if ($forgotError): ?>
+                    <div style="background:#FEE2E2; color:#DC2626; padding:12px; border-radius:12px; margin-bottom:20px; font-size:14px; border:1px solid #FECACA; font-weight:600; text-align:center;">
+                        ❌ <?= htmlspecialchars($forgotError) ?>
+                    </div>
+                <?php endif; ?>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" placeholder="you@example.com" required>
+                </div>
+                <button type="submit" class="modal-btn">Send Reset Code</button>
+            </form>
         </div>
     </div>
 
@@ -1619,6 +1697,14 @@ if (empty($topRestaurants)) {
             window.location.href = `/customer/restaurant.php?id=${id}`;
         }
         
+        function handleFormSubmit(form) {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
+            }
+        }
+        
         // Toast
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
@@ -1669,7 +1755,7 @@ if (empty($topRestaurants)) {
         }
         
         function googleLogin() {
-            showToast('Google login coming soon!', 'info');
+            showToast('Google Sign-In is coming soon! Please use email for now.', 'info');
         }
         
         // Animate numbers on scroll
@@ -1710,6 +1796,21 @@ if (empty($topRestaurants)) {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeAllModals();
         });
+
+        // Auto-reopen login modal if there was an error
+        <?php if ($loginError): ?>
+            window.addEventListener('load', () => openModal('login-modal'));
+        <?php endif; ?>
+
+        // Auto-reopen register modal if there was an error (e.g. session expired during verification)
+        <?php if ($registerError): ?>
+            window.addEventListener('load', () => openModal('register-modal'));
+        <?php endif; ?>
+
+        // Auto-reopen forgot password modal if there was an error
+        <?php if ($forgotError): ?>
+            window.addEventListener('load', () => openModal('forgot-password-modal'));
+        <?php endif; ?>
     </script>
 </body>
 </html>

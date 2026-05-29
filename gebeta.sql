@@ -3,6 +3,7 @@
 CREATE DATABASE IF NOT EXISTS gebeta DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE gebeta;
 
+SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS restaurant_ratings;
 DROP TABLE IF EXISTS otps;
 DROP TABLE IF EXISTS payments;
@@ -13,6 +14,14 @@ DROP TABLE IF EXISTS menu_items;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS restaurants;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS user_addresses;
+DROP TABLE IF EXISTS restaurant_posts;
+DROP TABLE IF EXISTS post_reactions;
+DROP TABLE IF EXISTS post_comments;
+DROP TABLE IF EXISTS delivery_partners;
+DROP TABLE IF EXISTS order_deliveries;
+DROP TABLE IF EXISTS delivery_ratings;
+SET FOREIGN_KEY_CHECKS = 1;
 
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -20,11 +29,13 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE NOT NULL,
     phone VARCHAR(20) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
+    google_id VARCHAR(255) UNIQUE DEFAULT NULL,
     role ENUM('customer', 'restaurant', 'admin', 'delivery') DEFAULT 'customer',
-    status ENUM('active', 'suspended') DEFAULT 'active',
+    status ENUM('active', 'inactive', 'suspended', 'pending') DEFAULT 'active',
     latitude DECIMAL(10,8) DEFAULT NULL,
     longitude DECIMAL(11,8) DEFAULT NULL,
     location_name VARCHAR(255) DEFAULT NULL,
+    profile_picture VARCHAR(255) DEFAULT NULL,
     location_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -44,6 +55,8 @@ CREATE TABLE restaurants (
     status ENUM('pending', 'active', 'suspended') DEFAULT 'pending',
     latitude DECIMAL(10,8) DEFAULT NULL,
     longitude DECIMAL(11,8) DEFAULT NULL,
+    delivery_time VARCHAR(50) DEFAULT NULL,
+    delivery_fee DECIMAL(10,2) DEFAULT 0.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_location (latitude, longitude)
@@ -114,7 +127,7 @@ CREATE TABLE otps (
     id INT PRIMARY KEY AUTO_INCREMENT,
     email VARCHAR(100) NOT NULL,
     code VARCHAR(6) NOT NULL,
-    purpose ENUM('register', 'login') NOT NULL,
+    purpose ENUM('register', 'login', 'reset') NOT NULL,
     expires_at DATETIME NOT NULL,
     used TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -144,19 +157,51 @@ CREATE TABLE restaurant_ratings (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE delivery_addresses (
+CREATE TABLE user_addresses (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
-    address_name VARCHAR(50),
-    latitude DECIMAL(10,8) NOT NULL,
-    longitude DECIMAL(11,8) NOT NULL,
-    full_address VARCHAR(255) NOT NULL,
+    address_type VARCHAR(50) DEFAULT 'home',
+    name VARCHAR(255),
+    latitude DECIMAL(10,8) DEFAULT NULL,
+    longitude DECIMAL(11,8) DEFAULT NULL,
+    full_address VARCHAR(255),
     phone VARCHAR(20),
     is_default BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_user (user_id),
     INDEX idx_location (latitude, longitude)
+);
+
+CREATE TABLE restaurant_posts (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    restaurant_id INT NOT NULL,
+    type ENUM('text', 'photo', 'video', 'voice') DEFAULT 'text',
+    content TEXT,
+    media_url VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
+);
+
+CREATE TABLE post_reactions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    post_id INT NOT NULL,
+    user_id INT NOT NULL,
+    reaction_type ENUM('like', 'love', 'wow', 'sad', 'angry') DEFAULT 'like',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES restaurant_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_reaction (post_id, user_id)
+);
+
+CREATE TABLE post_comments (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    post_id INT NOT NULL,
+    user_id INT NOT NULL,
+    comment TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES restaurant_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE delivery_partners (
@@ -227,15 +272,18 @@ CREATE TABLE delivery_ratings (
 
 -- Default test users (password: password123)
 INSERT INTO users (name, email, phone, password, role, status) VALUES
-('Admin User', 'admin@gebeta.com', '+251911000001', '$2y$10$Z2nVTfsIoG5oDsJN8vnwQOtqDDwqUD6dlfFxzFqqOGbXPY8CaX/ai', 'admin', 'active'),
+('Admin User', 'egatakebede7@gmail.com', '+251911000001', '$2y$10$Z2nVTfsIoG5oDsJN8vnwQOtqDDwqUD6dlfFxzFqqOGbXPY8CaX/ai', 'admin', 'active'),
 ('Yod Restaurant', 'yod@restaurant.com', '+251911000002', '$2y$10$eNDh14nZSQl7qKXnfBnoQezl8rVlKqxlj9grohwTkQaihcs87sZFC', 'restaurant', 'active'),
-('Test Customer', 'customer@test.com', '+251911000003', '$2y$10$iTE5bq9RdPVCtv/N1u0QluUZdvuLFXakYIpsJYkz3l82XX/n4sUKm', 'customer', 'active'),
-('Abebe Kebede', 'delivery1@gebeta.com', '+251911000004', '$2y$10$Z2nVTfsIoG5oDsJN8vnwQOtqDDwqUD6dlfFxzFqqOGbXPY8CaX/ai', 'delivery', 'active'),
+('Standard Customer', 'customer@test.com', '+251911000003', '$2y$10$iTE5bq9RdPVCtv/N1u0QluUZdvuLFXakYIpsJYkz3l82XX/n4sUKm', 'customer', 'active'),
+('Abebe Kebede', 'abebe.driver@delivery.com', '+251911000004', '$2y$10$Z2nVTfsIoG5oDsJN8vnwQOtqDDwqUD6dlfFxzFqqOGbXPY8CaX/ai', 'delivery', 'active'),
 ('Tigist Alemu', 'delivery2@gebeta.com', '+251911000005', '$2y$10$Z2nVTfsIoG5oDsJN8vnwQOtqDDwqUD6dlfFxzFqqOGbXPY8CaX/ai', 'delivery', 'active'),
 ('Dawit Tesfaye', 'delivery3@gebeta.com', '+251911000006', '$2y$10$Z2nVTfsIoG5oDsJN8vnwQOtqDDwqUD6dlfFxzFqqOGbXPY8CaX/ai', 'delivery', 'active');
 
-INSERT INTO restaurants (user_id, name, description, cuisine_type, location, phone, opening_time, closing_time, rating, status) VALUES
-(2, 'Yod Abyssinia', 'Authentic Ethiopian food with traditional recipes.', 'Ethiopian, Injera, Doro Wat', 'Piassa, Hawassa', '+251911000002', '09:00:00', '22:00:00', 4.3, 'active');
+INSERT INTO restaurants (user_id, name, description, cuisine_type, location, phone, opening_time, closing_time, rating, delivery_time, delivery_fee, status) VALUES
+(2, 'Yod Abyssinia', 'Authentic Ethiopian food with traditional recipes.', 'Ethiopian, Injera, Doro Wat', 'Piassa, Hawassa', '+251911000002', '09:00:00', '22:00:00', 4.8, '25-35', 0.00, 'active'),
+(2, 'Pizza Hut', 'World famous pizza now in Hawassa.', 'Pizza, Italian', 'Bole, Hawassa', '+251911000010', '10:00:00', '22:00:00', 4.5, '30-40', 30.00, 'active'),
+(2, 'Kaldi\'s Coffee', 'The best Ethiopian coffee experience.', 'Cafe, Coffee, Snacks', 'Piazza, Hawassa', '+251911000011', '07:00:00', '21:00:00', 4.6, '10-20', 15.00, 'active'),
+(2, 'Mama\'s Kitchen', 'Homemade taste with international variety.', 'International, Burgers', 'Megenagna, Hawassa', '+251911000012', '08:00:00', '21:00:00', 4.4, '25-35', 25.00, 'active');
 
 INSERT INTO categories (restaurant_id, name, display_order) VALUES
 (1, 'Main dishes', 1),

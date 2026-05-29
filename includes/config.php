@@ -1,5 +1,8 @@
 <?php
-// Load .env file if it exists
+// Set default timezone for OTP calculations
+date_default_timezone_set('Africa/Addis_Ababa');
+
+// Load .env file
 $envFile = __DIR__ . '/../.env';
 if (file_exists($envFile)) {
     $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -10,9 +13,6 @@ if (file_exists($envFile)) {
         
         list($key, $value) = explode('=', $line, 2);
         $key = trim($key);
-        $value = trim($value);
-        
-        // Remove quotes if present
         $value = trim($value, '"\'');
         
         putenv("$key=$value");
@@ -21,46 +21,73 @@ if (file_exists($envFile)) {
     }
 }
 
-function env_get(string $key, $default = null) {
+function env_get($key, $default = null) {
     $value = getenv($key);
     return $value === false ? $default : $value;
 }
 
-// Parse DB_HOST to handle host:port format
-$rawDbHost = env_get('DB_HOST');
-$dbHost = $rawDbHost !== false ? $rawDbHost : 'localhost';
-$dbPort = 3306;
+// Auto-detect environment
+$hostname = gethostname();
+$serverName = $_SERVER['SERVER_NAME'] ?? $_SERVER['HTTP_HOST'] ?? '';
+$isLocal = (
+    $serverName === 'localhost' || 
+    $serverName === '127.0.0.1' || 
+    strpos($hostname, 'HP-EliteBook') !== false ||
+    strpos($hostname, 'DESKTOP') !== false ||
+    strpos($hostname, 'LAPTOP') !== false ||
+    file_exists('/home/e/Gebeta/.env.local')
+);
 
-if ($dbHost && strpos($dbHost, ':') !== false) {
-    $parts = explode(':', $dbHost, 2);
+// Choose database based on environment
+if ($isLocal) {
+    // Use local MySQL
+    $rawDbHost = env_get('DB_HOST', 'localhost');
+    $dbPort = (int)env_get('DB_PORT', 3306);
+    $dbName = env_get('DB_NAME', 'gebeta');
+    $dbUser = env_get('DB_USER', 'root');
+    $dbPass = env_get('DB_PASS', '');
+    $environment = 'development';
+} else {
+    // Use Aiven cloud
+    $rawDbHost = env_get('DB_HOST_AIVEN', 'gebeta-db-gebeta.a.aivencloud.com:23863');
+    $dbPort = (int)env_get('DB_PORT_AIVEN', 23863);
+    $dbName = env_get('DB_NAME_AIVEN', 'defaultdb');
+    $dbUser = env_get('DB_USER_AIVEN', 'avnadmin');
+    $dbPass = env_get('DB_PASS_AIVEN', 'AVNS_AcTxZFvGTBqvOJcYhPY');
+    $environment = 'production';
+}
+
+// Parse host:port format
+$dbHost = $rawDbHost;
+if (strpos($rawDbHost, ':') !== false) {
+    $parts = explode(':', $rawDbHost, 2);
     $dbHost = $parts[0];
     $dbPort = (int)$parts[1];
 }
 
-// Database constants - Check if not already defined
-if (!defined('DB_HOST')) define('DB_HOST', $dbHost);
-if (!defined('DB_HOST_RAW')) define('DB_HOST_RAW', $rawDbHost);
-if (!defined('DB_PORT')) define('DB_PORT', $dbPort);
-if (!defined('DB_NAME')) define('DB_NAME', env_get('DB_NAME', 'gebeta'));
-if (!defined('DB_NAME_RAW')) define('DB_NAME_RAW', getenv('DB_NAME'));
-if (!defined('DB_USER')) define('DB_USER', env_get('DB_USER', 'root'));
-if (!defined('DB_USER_RAW')) define('DB_USER_RAW', getenv('DB_USER'));
-if (!defined('DB_PASS')) define('DB_PASS', env_get('DB_PASS', ''));
+// Database constants
+define('DB_HOST', $dbHost);
+define('DB_PORT', $dbPort);
+define('DB_NAME', $dbName);
+define('DB_USER', $dbUser);
+define('DB_PASS', $dbPass);
+define('ENVIRONMENT', $environment);
+define('SITE_NAME', 'Gebeta');
+define('BASE_URL', env_get('BASE_URL', 'http://localhost:7844'));
 
-// Brevo Email API
-if (!defined('BREVO_API_KEY')) define('BREVO_API_KEY', getenv('BREVO_API_KEY') ?: '');
-if (!defined('BREVO_SENDER_EMAIL')) define('BREVO_SENDER_EMAIL', getenv('BREVO_SENDER_EMAIL') ?: 'noreply@gebeta.com');
-if (!defined('BREVO_SENDER_NAME')) define('BREVO_SENDER_NAME', 'Gebeta');
+// Brevo API Configuration
+define('BREVO_API_KEY', env_get('BREVO_API_KEY', ''));
 
-// Google OAuth - Check if not already defined
-if (!defined('GOOGLE_CLIENT_ID')) define('GOOGLE_CLIENT_ID', getenv('GOOGLE_CLIENT_ID') ?: '');
-if (!defined('GOOGLE_CLIENT_SECRET')) define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '');
+// Google OAuth Configuration
+define('GOOGLE_CLIENT_ID', env_get('GOOGLE_CLIENT_ID', 'YOUR_ACTUAL_CLIENT_ID.apps.googleusercontent.com'));
 
-// Site constants
-if (!defined('SITE_NAME')) define('SITE_NAME', 'Gebeta');
-if (!defined('BASE_URL')) define('BASE_URL', '');
-if (!defined('UPLOAD_DIR_RESTAURANTS')) define('UPLOAD_DIR_RESTAURANTS', 'uploads/restaurants/');
-if (!defined('UPLOAD_DIR_MENU')) define('UPLOAD_DIR_MENU', 'uploads/menu/');
-if (!defined('UPLOAD_DIR_POSTS')) define('UPLOAD_DIR_POSTS', 'uploads/posts/');
-if (!defined('ENVIRONMENT')) define('ENVIRONMENT', 'development');
+// Directory constants for media management
+define('ROOT_DIR', dirname(__DIR__));
+define('UPLOAD_DIR', ROOT_DIR . '/uploads/');
+define('UPLOAD_DIR_POSTS', UPLOAD_DIR . 'posts/');
+define('UPLOAD_DIR_RESTAURANTS', UPLOAD_DIR . 'restaurants/');
+define('UPLOAD_DIR_MENU', UPLOAD_DIR . 'menu/');
+
+// Log which database we're using
+error_log("Using database: " . DB_HOST . ":" . DB_PORT . "/" . DB_NAME . " (" . ENVIRONMENT . ")");
 ?>

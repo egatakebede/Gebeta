@@ -25,12 +25,12 @@ if (!empty($_SESSION['pending_register'])) {
 
 // Rate limit: max 1 resend per 60 seconds
 $stmt = $pdo->prepare(
-    'SELECT created_at FROM otps WHERE email = ? AND purpose = ? ORDER BY id DESC LIMIT 1'
+    'SELECT UNIX_TIMESTAMP(created_at) as ts FROM otps WHERE email = ? AND purpose = ? ORDER BY id DESC LIMIT 1'
 );
 $stmt->execute([$email, $purpose]);
 $last = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if ($last && (time() - strtotime($last['created_at'])) < 60) {
+if ($last && (time() - (int)$last['ts']) < 60) {
     echo json_encode(['success' => false, 'message' => 'Please wait before requesting a new code.']);
     return;
 }

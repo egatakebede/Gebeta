@@ -104,8 +104,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $restaurant['status'] === 'active')
         $content = $content . "\n" . '[media]:' . $mediaUrl;
     }
 
-    $stmt = $pdo->prepare('INSERT INTO restaurant_posts (restaurant_id, type, content) VALUES (?, ?, ?)');
-    $stmt->execute([$restaurant['id'], $type, $content]);
+    if (!$mediaInserted) {
+        $stmt = $pdo->prepare('INSERT INTO restaurant_posts (restaurant_id, type, content) VALUES (?, ?, ?)');
+        $stmt->execute([$restaurant['id'], $type, $content]);
+    }
 
     flash_set('success', 'Post created successfully!');
     redirect('/restaurant/posts.php');

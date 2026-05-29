@@ -712,4 +712,4 @@ for ($i = 5; $i >= 0; $i--) {
         themeToggle?.addEventListener('click', () => { const isNight = themeRoot.classList.contains('night'); const next = isNight ? 'day' : 'night'; localStorage.setItem(themeKey, next); applyTheme(next); });
     </script>
 </body>
-</html>s
+</html>

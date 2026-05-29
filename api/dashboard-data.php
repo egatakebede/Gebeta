@@ -79,10 +79,13 @@ try {
     $stmt->execute([$rid]);
     $topItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Revenue trend (last 7 days)
+    // Revenue & Orders trend (last 7 days)
     $revenueTrend = [];
+    $ordersTrend = [];
     $stmt = $pdo->prepare('
-        SELECT DATE(created_at) AS day, SUM(total_amount + delivery_fee) AS revenue
+        SELECT DATE(created_at) AS day, 
+               COUNT(*) AS order_count,
+               SUM(total_amount + delivery_fee) AS revenue
         FROM orders
         WHERE restaurant_id = ?
           AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
@@ -93,13 +96,16 @@ try {
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $dayMap = [];
     foreach ($rows as $r) {
-        $dayMap[$r['day']] = (float)$r['revenue'];
+        $dayMap[$r['day']] = [
+            'revenue' => (float)$r['revenue'],
+            'orders' => (int)$r['order_count']
+        ];
     }
     for ($i = 6; $i >= 0; $i--) {
         $d = (new DateTime('today'))->modify("-$i days")->format('Y-m-d');
-        $revenueTrend[] = (float)($dayMap[$d] ?? 0);
+        $revenueTrend[] = (float)($dayMap[$d]['revenue'] ?? 0);
+        $ordersTrend[] = (int)($dayMap[$d]['orders'] ?? 0);
     }
-
     // Simplified peak hours (top 3 hours by order count in last 7 days)
     $peakHours = [];
     try {
@@ -138,6 +144,7 @@ try {
             'recent_orders' => $recentOrders,
             'top_items' => $topItems,
             'chart' => [
+                'orders_trend' => $ordersTrend,
                 'revenue_trend' => $revenueTrend,
                 'peak_hours' => $peakHours
             ],
@@ -148,4 +155,3 @@ try {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => 'Server error']);
 }
-

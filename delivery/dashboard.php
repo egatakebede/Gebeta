@@ -1,8 +1,13 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
-require_login(['delivery']);
 require_once __DIR__ . '/../includes/db.php';
 
+// Require login for delivery partners only
+require_login(['delivery']);
+
+$deliveryId = $_SESSION['user']['id'];
+$deliveryName = $_SESSION['user']['name'];
+// ... rest of code
 $userId = $_SESSION['user']['id'];
 $userName = $_SESSION['user']['name'];
 
