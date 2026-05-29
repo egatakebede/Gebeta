@@ -73,4 +73,19 @@ function redirect($url) {
         exit;
     }
 }
+
+?>
+<?php
+// Add redirect function if not exists
+if (!function_exists('redirect')) {
+    function redirect($url) {
+        if (!headers_sent()) {
+            header("Location: $url");
+            exit;
+        } else {
+            echo "<script>window.location.href='$url';</script>";
+            exit;
+        }
+    }
+}
 ?>
