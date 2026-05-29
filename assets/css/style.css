@@ -328,6 +328,12 @@ body {
     background-attachment: fixed;
 }
 
+/* Navbar uses fixed positioning on the landing page */
+.hero-header {
+    padding-top: 84px;
+}
+
+
 button, input, select, textarea {
     font-family: var(--font);
 }
@@ -357,19 +363,34 @@ html {
 
 .hero-header {
     min-height: 100vh;
-    background: linear-gradient(135deg, #e12a1e 0%, #f14924 45%, #ff7f49 100%);
+    background: linear-gradient(135deg, #FC8019 0%, #E56B0F 100%);
     color: #fff;
     padding: 28px 20px 52px;
 }
 
 .hero-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: linear-gradient(135deg, #FC8019 0%, #E56B0F 100%);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 12px 20px;
+
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
-    max-width: 1200px;
+
+    max-width: 1400px;
     margin: 0 auto 24px;
 }
+
+.hero-body {
+    padding-top: 88px;
+}
+
 
 .brand {
     display: flex;
@@ -1631,9 +1652,19 @@ textarea:focus {
 }
 
 /* Add bottom padding to page content so nav doesn't cover content */
-body:has(.bottom-nav) .page-content {
-    padding-bottom: 80px;
+/* Use classic selector for broader browser support (avoid :has() which breaks some mobile browsers) */
+body.bottom-nav-visible .page-content {
+    padding-bottom: 96px;
 }
+
+/* Backward compatibility for browsers that support :has() */
+/* Note: if :has() is not supported, body.bottom-nav-visible will handle padding. */
+body:has(.bottom-nav) .page-content {
+    padding-bottom: 96px;
+}
+
+
+
 
 /* ── Modal overlay & bottom-sheet ── */
 .modal-overlay {

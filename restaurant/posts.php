@@ -16,15 +16,101 @@ if ($restaurant['status'] !== 'active') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $restaurant['status'] === 'active') {
+    csrf_verify();
+
     $type = $_POST['type'] ?? 'text';
     $content = sanitize($_POST['content'] ?? '');
-    
+
+    $type = in_array($type, ['text','photo','video','voice'], true) ? $type : 'text';
+
+    $mediaUrl = null;
+    if (!empty($_FILES['media']) && isset($_FILES['media']['tmp_name']) && is_uploaded_file($_FILES['media']['tmp_name'])) {
+        $file = $_FILES['media'];
+        $maxBytes = 25 * 1024 * 1024; // ~25MB short video cap
+        if (!empty($file['size']) && (int)$file['size'] > $maxBytes) {
+            flash_set('error', 'File is too large (max 25MB).');
+            redirect('/restaurant/posts.php');
+        }
+
+        // Validate by selected post type
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($file['tmp_name']) ?: '';
+
+        $allowed = [];
+        if ($type === 'photo') {
+            $allowed = ['image/jpeg','image/png','image/webp','image/gif'];
+            if (!in_array($mime, $allowed, true)) {
+                flash_set('error', 'Invalid photo format.');
+                redirect('/restaurant/posts.php');
+            }
+        } elseif ($type === 'video') {
+            $allowed = ['video/mp4','video/webm','video/ogg'];
+            if (!in_array($mime, $allowed, true)) {
+                flash_set('error', 'Invalid video format. Use mp4/webm/ogg.');
+                redirect('/restaurant/posts.php');
+            }
+        } else {
+            // For text/voice, ignore media upload
+        }
+
+        if (!empty($allowed) && in_array($type, ['photo','video'], true)) {
+            $restDir = UPLOAD_DIR_POSTS . (int)$restaurant['id'] . '/';
+            if (!is_dir($restDir)) {
+                @mkdir($restDir, 0755, true);
+            }
+
+            $ext = match ($mime) {
+                'image/jpeg' => 'jpg',
+                'image/png'  => 'png',
+                'image/webp' => 'webp',
+                'image/gif'  => 'gif',
+                'video/mp4'  => 'mp4',
+                'video/webm' => 'webm',
+                'video/ogg'  => 'ogv',
+                default       => 'bin'
+            };
+
+            $randName = bin2hex(random_bytes(16));
+            $filename = $randName . '.' . $ext;
+            $destPath = $restDir . $filename;
+
+            if (!move_uploaded_file($file['tmp_name'], $destPath)) {
+                flash_set('error', 'Failed to upload media.');
+                redirect('/restaurant/posts.php');
+            }
+
+            $mediaUrl = '/' . trim($destPath, '/');
+        }
+    }
+
+    // Prefer inserting media_url if column exists; otherwise fallback to storing in content.
+    $mediaInserted = false;
+    if ($mediaUrl !== null) {
+        try {
+            $stmt = $pdo->query("SHOW COLUMNS FROM restaurant_posts LIKE 'media_url'");
+            $has = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : false;
+            if ($has) {
+                $stmt = $pdo->prepare('INSERT INTO restaurant_posts (restaurant_id, type, content, media_url) VALUES (?, ?, ?, ?)');
+                $stmt->execute([$restaurant['id'], $type, $content, $mediaUrl]);
+                $mediaInserted = true;
+            }
+        } catch (Throwable $e) {
+            // ignore and fallback
+        }
+    }
+
+    if (!$mediaInserted && $mediaUrl !== null) {
+        // Fallback: store media URL in content so old DB schemas still work
+        $content = $content . "\n" . '[media]:' . $mediaUrl;
+    }
+
     $stmt = $pdo->prepare('INSERT INTO restaurant_posts (restaurant_id, type, content) VALUES (?, ?, ?)');
     $stmt->execute([$restaurant['id'], $type, $content]);
-    
+
     flash_set('success', 'Post created successfully!');
     redirect('/restaurant/posts.php');
 }
+
 
 $stmt = $pdo->prepare('SELECT * FROM restaurant_posts WHERE restaurant_id = ? ORDER BY created_at DESC');
 $stmt->execute([$restaurant['id']]);
@@ -60,7 +146,7 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php if ($restaurant['status'] === 'active'): ?>
         <div style="background:#fff;border-radius:20px;padding:20px;margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
             <h2 style="font-size:18px;margin-bottom:16px;">Create New Post</h2>
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 <select name="type" style="width:100%;padding:12px;border:2px solid var(--border-gray);border-radius:12px;margin-bottom:12px;">
                     <option value="text">📝 Text</option>
                     <option value="photo">📷 Photo</option>
@@ -68,6 +154,16 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <option value="voice">🎤 Voice</option>
                 </select>
                 <textarea name="content" placeholder="What's on your mind?" style="width:100%;min-height:100px;padding:12px;border:2px solid var(--border-gray);border-radius:12px;margin-bottom:12px;" required></textarea>
+                <?= csrf_field() ?>
+
+                <div style="margin-bottom:12px;">
+                    <label style="display:block;font-weight:700;margin-bottom:8px;">Add photo or short video (optional)</label>
+                    <input type="file" name="media" accept="image/*,video/*" style="width:100%;padding:10px;border:2px solid var(--border-gray);border-radius:12px;" />
+                    <p style="margin:8px 0 0 0;font-size:12px;color:var(--gray-text);">
+                        Choose <b>Photo</b> or <b>Video</b> from the post type.
+                    </p>
+                </div>
+
                 <button type="submit" class="primary-btn">Post</button>
             </form>
         </div>

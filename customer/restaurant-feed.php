@@ -185,7 +185,29 @@ $cartCount = get_cart_count();
                         <span style="font-size:13px;color:var(--gray-text);"><?= date('M d, Y', strtotime($post['created_at'])) ?></span>
                     </div>
                     
-                    <p style="color:var(--dark-text);line-height:1.6;margin-bottom:12px;"><?= nl2br(htmlspecialchars($post['content'])) ?></p>
+                    <?php
+                    $rawContent = (string)($post['content'] ?? '');
+                    $mediaUrl = $post['media_url'] ?? null;
+                    if (!$mediaUrl) {
+                        if (preg_match('/\[media\]:(\S+)/', $rawContent, $m)) {
+                            $mediaUrl = $m[1];
+                            $rawContent = preg_replace('/\[media\]:\S+/', '', $rawContent);
+                        }
+                    }
+                    ?>
+
+                    <?php if (($post['type'] ?? '') === 'photo' && $mediaUrl): ?>
+                        <div style="margin-bottom:12px;">
+                            <img src="<?= htmlspecialchars($mediaUrl) ?>" alt="Post photo" style="width:100%;height:auto;border-radius:16px;display:block;" />
+                        </div>
+                    <?php elseif (($post['type'] ?? '') === 'video' && $mediaUrl): ?>
+                        <div style="margin-bottom:12px;">
+                            <video src="<?= htmlspecialchars($mediaUrl) ?>" controls playsinline style="width:100%;border-radius:16px;display:block;max-height:420px;" preload="metadata"></video>
+                        </div>
+                    <?php endif; ?>
+
+                    <p style="color:var(--dark-text);line-height:1.6;margin-bottom:12px;"><?= nl2br(htmlspecialchars(trim($rawContent))) ?></p>
+
                     
                     <div class="reactions">
                         <button class="reaction-btn <?= $post['user_reaction'] === 'like' ? 'active' : '' ?>" onclick="react(<?= $post['id'] ?>, 'like', this)">
