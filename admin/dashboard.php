@@ -1,44 +1,258 @@
+cat > /home/e/Gebeta/admin/dashboard.php << 'EOF'
 <?php
 require_once __DIR__ . '/../includes/auth.php';
 require_login(['admin']);
 require_once __DIR__ . '/../includes/db.php';
 
-// Calculate KPIs with trends
-$totalOrders = $pdo->query('SELECT COUNT(*) FROM orders')->fetchColumn();
-$yesterdayOrders = $pdo->query('SELECT COUNT(*) FROM orders WHERE DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)')->fetchColumn();
-$ordersTrend = $yesterdayOrders > 0 ? (($totalOrders - $yesterdayOrders) / $yesterdayOrders) * 100 : 0;
+// ============================================
+// USER STATS - FIXED for your actual schema
+// ============================================
 
-// (Advanced dashboard merge) Keep chart/table IDs and behavior consistent.
+// Try to get role column - if it doesn't exist, use fallback
+try {
+    $stmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'role'");
+    $hasRoleColumn = $stmt->fetch() ? true : false;
+} catch (PDOException $e) {
+    $hasRoleColumn = false;
+}
 
+if ($hasRoleColumn) {
+    $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'customer'");
+    $totalCustomers = $stmt->fetchColumn();
+    
+    $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'restaurant'");
+    $totalRestaurantOwners = $stmt->fetchColumn();
+    
+    $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'");
+    $totalAdmins = $stmt->fetchColumn();
+} else {
+    // Fallback - count all users as customers
+    $stmt = $pdo->query("SELECT COUNT(*) FROM users");
+    $totalCustomers = $stmt->fetchColumn();
+    $totalRestaurantOwners = 0;
+    $totalAdmins = 0;
+}
 
-$stmt = $pdo->query('SELECT SUM(total_amount + delivery_fee) FROM orders');
-$totalRevenue = $stmt->fetchColumn() ?: 0;
-$stmt = $pdo->query('SELECT SUM(total_amount + delivery_fee) FROM orders WHERE DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)');
-$yesterdayRevenue = $stmt->fetchColumn() ?: 0;
-$revenueTrend = $yesterdayRevenue > 0 ? (($totalRevenue - $yesterdayRevenue) / $yesterdayRevenue) * 100 : 0;
+$stmt = $pdo->query("SELECT COUNT(*) FROM users");
+$totalUsers = $stmt->fetchColumn();
 
-$activeUsers = $pdo->query("SELECT COUNT(*) FROM users WHERE status = 'active'")->fetchColumn();
-$totalUsers = $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
-$usersTrend = $totalUsers > 0 ? ($activeUsers / $totalUsers) * 100 : 0;
+// ============================================
+// RESTAURANT STATS
+// ============================================
+$stmt = $pdo->query("SELECT COUNT(*) FROM restaurants WHERE status = 'active'");
+$activeRestaurants = $stmt->fetchColumn();
 
-$activeRestaurants = $pdo->query("SELECT COUNT(*) FROM restaurants WHERE status = 'active'")->fetchColumn();
-$pendingRestaurants = $pdo->query("SELECT COUNT(*) FROM restaurants WHERE status = 'pending'")->fetchColumn();
+$stmt = $pdo->query("SELECT COUNT(*) FROM restaurants WHERE status = 'pending'");
+$pendingRestaurants = $stmt->fetchColumn();
 
-$activeDeliveries = $pdo->query("SELECT COUNT(*) FROM order_deliveries WHERE status IN ('assigned', 'picked_up', 'in_transit')")->fetchColumn();
+$stmt = $pdo->query("SELECT COUNT(*) FROM restaurants");
+$totalRestaurants = $stmt->fetchColumn();
 
-$stmt = $pdo->query('SELECT AVG(rating) FROM restaurants WHERE rating > 0');
-$avgRating = $stmt->fetchColumn() ?: 0;
+// ============================================
+// DELIVERY PARTNER STATS
+// ============================================
+try {
+    $stmt = $pdo->query("SELECT COUNT(*) FROM delivery_partners");
+    $totalDeliveryPartners = $stmt->fetchColumn();
+} catch (PDOException $e) {
+    $totalDeliveryPartners = 0;
+}
 
-// Recent orders
-$recentOrders = $pdo->query('
-    SELECT o.id, o.order_number, o.status, o.total_amount, o.created_at, 
-           r.name AS restaurant_name, u.name AS customer_name 
-    FROM orders o 
-    JOIN restaurants r ON o.restaurant_id = r.id 
-    JOIN users u ON o.user_id = u.id 
-    ORDER BY o.created_at DESC 
-    LIMIT 10
-')->fetchAll(PDO::FETCH_ASSOC);
+try {
+    $stmt = $pdo->query("SELECT COUNT(*) FROM delivery_partners WHERE status = 'online'");
+    $onlineDeliveryPartners = $stmt->fetchColumn();
+} catch (PDOException $e) {
+    $onlineDeliveryPartners = 0;
+}
+
+// ============================================
+// ORDER STATS
+// ============================================
+$stmt = $pdo->query("SELECT COUNT(*) FROM orders");
+$totalOrders = $stmt->fetchColumn();
+
+$stmt = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'pending'");
+$pendingOrders = $stmt->fetchColumn();
+
+$stmt = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'delivered'");
+$deliveredOrders = $stmt->fetchColumn();
+
+$stmt = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'cancelled'");
+$cancelledOrders = $stmt->fetchColumn();
+
+// ============================================
+// REVENUE STATS
+// ============================================
+$stmt = $pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM orders");
+$totalRevenue = $stmt->fetchColumn();
+
+$stmt = $pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE DATE(created_at) = CURDATE()");
+$todayRevenue = $stmt->fetchColumn();
+
+$stmt = $pdo->query("SELECT COALESCE(AVG(total_amount), 0) FROM orders");
+$avgOrderValue = $stmt->fetchColumn();
+
+// ============================================
+// TODAY'S STATS
+// ============================================
+$stmt = $pdo->query("SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE()");
+$todayOrders = $stmt->fetchColumn();
+
+$stmt = $pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE MONTH(created_at) = MONTH(CURDATE())");
+$monthRevenue = $stmt->fetchColumn();
+
+$stmt = $pdo->query("SELECT COUNT(*) FROM orders WHERE MONTH(created_at) = MONTH(CURDATE())");
+$monthOrders = $stmt->fetchColumn();
+
+// ============================================
+// MENU & CATEGORIES
+// ============================================
+try {
+    $stmt = $pdo->query("SELECT COUNT(*) FROM menu_items");
+    $totalMenuItems = $stmt->fetchColumn();
+} catch (PDOException $e) {
+    $totalMenuItems = 0;
+}
+
+try {
+    $stmt = $pdo->query("SELECT COUNT(*) FROM menu_items WHERE is_available = 1");
+    $availableMenuItems = $stmt->fetchColumn();
+} catch (PDOException $e) {
+    $availableMenuItems = 0;
+}
+
+// ============================================
+// REVIEWS
+// ============================================
+try {
+    $stmt = $pdo->query("SELECT COALESCE(AVG(rating), 0) FROM reviews");
+    $avgRating = $stmt->fetchColumn();
+} catch (PDOException $e) {
+    $avgRating = 0;
+}
+
+// ============================================
+// RECENT ORDERS
+// ============================================
+try {
+    $stmt = $pdo->query("
+        SELECT o.id, o.order_number, o.status, o.total_amount, o.created_at,
+               u.name AS customer_name, r.name AS restaurant_name
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.id
+        LEFT JOIN restaurants r ON o.restaurant_id = r.id
+        ORDER BY o.created_at DESC
+        LIMIT 10
+    ");
+    $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $recentOrders = [];
+}
+
+// ============================================
+// TOP RESTAURANTS
+// ============================================
+try {
+    $stmt = $pdo->query("
+        SELECT r.id, r.name, r.cuisine_type, r.rating,
+               COUNT(o.id) AS order_count,
+               COALESCE(SUM(o.total_amount), 0) AS total_revenue
+        FROM restaurants r
+        LEFT JOIN orders o ON r.id = o.restaurant_id
+        GROUP BY r.id
+        ORDER BY order_count DESC
+        LIMIT 5
+    ");
+    $topRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $topRestaurants = [];
+}
+
+// ============================================
+// NEW USERS TODAY
+// ============================================
+$stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURDATE()");
+$newUsersToday = $stmt->fetchColumn();
+
+// ============================================
+// COMMISSION (15%)
+// ============================================
+$commissionRate = 0.15;
+$totalCommission = $totalRevenue * $commissionRate;
+$monthCommission = $monthRevenue * $commissionRate;
+
+// ============================================
+// MONTHLY REVENUE DATA FOR CHART
+// ============================================
+$monthlyLabels = [];
+$monthlyRevenue = [];
+$monthlyOrders = [];
+
+try {
+    $stmt = $pdo->query("
+        SELECT 
+            DATE_FORMAT(created_at, '%M %Y') as month_name,
+            COALESCE(SUM(total_amount), 0) as revenue,
+            COUNT(*) as orders
+        FROM orders
+        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+        GROUP BY YEAR(created_at), MONTH(created_at)
+        ORDER BY MIN(created_at) ASC
+    ");
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $monthlyLabels[] = $row['month_name'];
+        $monthlyRevenue[] = (float)$row['revenue'];
+        $monthlyOrders[] = (int)$row['orders'];
+    }
+} catch (PDOException $e) {
+    // No data yet
+}
+
+// ============================================
+// PEAK HOURS DATA
+// ============================================
+$hourlyLabels = [];
+$hourlyOrders = [];
+try {
+    $stmt = $pdo->query("
+        SELECT 
+            HOUR(created_at) as hour,
+            COUNT(*) as orders
+        FROM orders
+        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        GROUP BY HOUR(created_at)
+        ORDER BY hour ASC
+    ");
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $hourlyLabels[] = (int)$row['hour'];
+        $hourlyOrders[] = (int)$row['orders'];
+    }
+} catch (PDOException $e) {
+    // No data yet
+}
+
+// ============================================
+// PAYMENT METHOD STATS
+// ============================================
+$paymentLabels = [];
+$paymentCounts = [];
+try {
+    $stmt = $pdo->query("
+        SELECT 
+            payment_method,
+            COUNT(*) as count
+        FROM orders
+        WHERE payment_method IS NOT NULL
+        GROUP BY payment_method
+    ");
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $paymentLabels[] = $row['payment_method'];
+        $paymentCounts[] = (int)$row['count'];
+    }
+} catch (PDOException $e) {
+    // No data yet
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -46,350 +260,120 @@ $recentOrders = $pdo->query('
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard · Gebeta</title>
-    <link rel="stylesheet" href="/assets/css/admin-layout.css">
-    <link rel="stylesheet" href="/assets/css/admin-components.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#F3F4F6}
+        .container{max-width:1400px;margin:0 auto;padding:20px}
+        h1{color:#1F2937;margin-bottom:20px}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-bottom:30px}
+        .stat-card{background:#fff;padding:20px;border-radius:12px;border:1px solid #E5E7EB;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
+        .stat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+        .stat-label{font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase}
+        .stat-value{font-size:32px;font-weight:700;color:#1F2937}
+        .stat-trend{font-size:12px;color:#6B7280;margin-top:8px}
+        .stat-trend.up{color:#10B981}
+        .charts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-bottom:30px}
+        .chart-card{background:#fff;border-radius:12px;border:1px solid #E5E7EB;padding:20px}
+        .chart-title{font-size:16px;font-weight:700;margin-bottom:15px}
+        .chart-container{height:250px}
+        .table-card{background:#fff;border-radius:12px;border:1px solid #E5E7EB;overflow-x:auto;margin-bottom:30px}
+        .table-header{padding:15px 20px;border-bottom:1px solid #E5E7EB;display:flex;justify-content:space-between;align-items:center}
+        .table-title{font-size:18px;font-weight:700}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:12px 15px;text-align:left;border-bottom:1px solid #E5E7EB}
+        th{background:#F9FAFB;font-weight:600;font-size:12px;color:#6B7280}
+        .status-badge{display:inline-block;padding:4px 8px;border-radius:20px;font-size:11px;font-weight:600}
+        .status-pending{background:#FEF3C7;color:#D97706}
+        .status-delivered{background:#D1FAE5;color:#059669}
+        .btn-refresh{background:#FC8019;border:none;color:#fff;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;margin-bottom:20px}
+        .btn-refresh:hover{background:#E56B0F}
+        @media(max-width:768px){.charts-grid{grid-template-columns:1fr}}
+    </style>
 </head>
 <body>
-    <div class="admin-layout admin-theme" id="adminThemeRoot">
-
-        <!-- Sidebar -->
-        <aside class="admin-sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">G</div>
-                <div class="sidebar-title">Gebeta</div>
-            </div>
-            
-            <nav class="sidebar-nav">
-                <div class="nav-section">
-                    <div class="nav-section-title">Main</div>
-                    <a href="/admin/dashboard.php" class="nav-item active">
-                        <span class="nav-item-icon">📊</span>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="/admin/orders.php" class="nav-item">
-                        <span class="nav-item-icon">📦</span>
-                        <span>Orders</span>
-                        <span class="nav-item-badge"><?= $totalOrders ?></span>
-                    </a>
-                    <a href="/admin/restaurants.php" class="nav-item">
-                        <span class="nav-item-icon">🏪</span>
-                        <span>Restaurants</span>
-                        <?php if ($pendingRestaurants > 0): ?>
-                        <span class="nav-item-badge"><?= $pendingRestaurants ?></span>
-                        <?php endif; ?>
-                    </a>
-                    <a href="/admin/users.php" class="nav-item">
-                        <span class="nav-item-icon">👥</span>
-                        <span>Users</span>
-                    </a>
-                    <a href="/admin/delivery-partners.php" class="nav-item">
-                        <span class="nav-item-icon">🚚</span>
-                        <span>Delivery Partners</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section">
-                    <div class="nav-section-title">Analytics</div>
-                    <a href="/admin/analytics.php" class="nav-item">
-                        <span class="nav-item-icon">📈</span>
-                        <span>Analytics</span>
-                    </a>
-                    <a href="/admin/reports.php" class="nav-item">
-                        <span class="nav-item-icon">📄</span>
-                        <span>Reports</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section">
-                    <div class="nav-section-title">Settings</div>
-                    <a href="/admin/settings.php" class="nav-item">
-                        <span class="nav-item-icon">⚙️</span>
-                        <span>Settings</span>
-                    </a>
-                    <a href="/logout.php" class="nav-item">
-                        <span class="nav-item-icon">🚪</span>
-                        <span>Logout</span>
-                    </a>
-                </div>
-            </nav>
-        </aside>
-        
-        <!-- Main Content -->
-        <main class="admin-main" id="mainContent">
-            <!-- Header -->
-            <header class="admin-header">
-                <button class="header-toggle" id="sidebarToggle">
-                    <span>☰</span>
-                </button>
-                
-                <div class="header-search">
-                    <span class="header-search-icon">🔍</span>
-                    <input type="text" class="header-search-input" placeholder="Search orders, restaurants, users..." id="globalSearch">
-                </div>
-                
-                <div class="header-actions">
-                    <button class="header-action-btn" id="notificationBtn">
-                        <span>🔔</span>
-                        <?php if ($pendingRestaurants > 0): ?>
-                        <span class="header-action-badge"><?= $pendingRestaurants ?></span>
-                        <?php endif; ?>
-                    </button>
-                    
-                    <button class="header-action-btn" id="darkModeToggle">
-                        <span>🌙</span>
-                    </button>
-                    
-                    <div class="header-profile">
-                        <div class="header-avatar">A</div>
-                        <div class="header-profile-info">
-                            <div class="header-profile-name">Admin</div>
-                            <div class="header-profile-role">Administrator</div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-            
-            <!-- Content -->
-            <div class="admin-content">
-                <div class="content-header">
-                    <h1 class="content-title">Dashboard Overview</h1>
-                    <p class="content-subtitle">Welcome back! Here's what's happening with your platform today.</p>
-                </div>
-                
-                <!-- KPI Cards -->
-                <div class="kpi-grid">
-                    <div class="kpi-card">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Total Orders</span>
-                            <div class="kpi-icon">📦</div>
-                        </div>
-                        <div class="kpi-value"><?= number_format($totalOrders) ?></div>
-                        <div class="kpi-trend <?= $ordersTrend >= 0 ? 'positive' : 'negative' ?>">
-                            <span class="kpi-trend-icon"><?= $ordersTrend >= 0 ? '↑' : '↓' ?></span>
-                            <span><?= abs(number_format($ordersTrend, 1)) ?>% vs yesterday</span>
-                        </div>
-                    </div>
-                    
-                    <div class="kpi-card">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Total Revenue</span>
-                            <div class="kpi-icon">💰</div>
-                        </div>
-                        <div class="kpi-value"><?= number_format($totalRevenue, 0) ?> Birr</div>
-                        <div class="kpi-trend <?= $revenueTrend >= 0 ? 'positive' : 'negative' ?>">
-                            <span class="kpi-trend-icon"><?= $revenueTrend >= 0 ? '↑' : '↓' ?></span>
-                            <span><?= abs(number_format($revenueTrend, 1)) ?>% vs yesterday</span>
-                        </div>
-                    </div>
-                    
-                    <div class="kpi-card">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Active Users</span>
-                            <div class="kpi-icon">👥</div>
-                        </div>
-                        <div class="kpi-value"><?= number_format($activeUsers) ?></div>
-                        <div class="kpi-trend positive">
-                            <span class="kpi-trend-icon">↑</span>
-                            <span><?= number_format($usersTrend, 1) ?>% active rate</span>
-                        </div>
-                    </div>
-                    
-                    <div class="kpi-card">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Active Restaurants</span>
-                            <div class="kpi-icon">🏪</div>
-                        </div>
-                        <div class="kpi-value"><?= number_format($activeRestaurants) ?></div>
-                        <div class="kpi-trend">
-                            <span><?= $pendingRestaurants ?> pending approval</span>
-                        </div>
-                    </div>
-                    
-                    <div class="kpi-card">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Active Deliveries</span>
-                            <div class="kpi-icon">🚚</div>
-                        </div>
-                        <div class="kpi-value"><?= number_format($activeDeliveries) ?></div>
-                        <div class="kpi-trend">
-                            <span>In progress now</span>
-                        </div>
-                    </div>
-                    
-                    <div class="kpi-card">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Average Rating</span>
-                            <div class="kpi-icon">⭐</div>
-                        </div>
-                        <div class="kpi-value"><?= number_format($avgRating, 1) ?></div>
-                        <div class="kpi-trend positive">
-                            <span>Platform average</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Charts -->
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h2 class="chart-title">Revenue & Orders Trend</h2>
-                        <div class="chart-actions">
-                            <button class="chart-filter-btn active" data-period="7">7 Days</button>
-                            <button class="chart-filter-btn" data-period="30">30 Days</button>
-                            <button class="chart-filter-btn" data-period="90">90 Days</button>
-                        </div>
-                    </div>
-                    <canvas id="revenueChart" class="chart-canvas"></canvas>
-                </div>
-                
-                <!-- Recent Orders Table -->
-                <div class="data-table-container">
-                    <div class="table-header">
-                        <h2 class="table-title">Recent Orders</h2>
-                        <div class="table-search">
-                            <span class="table-search-icon">🔍</span>
-                            <input type="text" class="table-search-input" placeholder="Search orders..." id="orderSearch">
-                        </div>
-                        <div class="table-filters">
-                            <button class="filter-btn active">All</button>
-                            <button class="filter-btn">Pending</button>
-                            <button class="filter-btn">Delivered</button>
-                        </div>
-                    </div>
-                    
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th class="sortable">Order #</th>
-                                <th class="sortable">Customer</th>
-                                <th class="sortable">Restaurant</th>
-                                <th class="sortable">Amount</th>
-                                <th class="sortable">Status</th>
-                                <th class="sortable">Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($recentOrders as $order): ?>
-                            <tr>
-                                <td><strong><?= htmlspecialchars($order['order_number']) ?></strong></td>
-                                <td><?= htmlspecialchars($order['customer_name']) ?></td>
-                                <td><?= htmlspecialchars($order['restaurant_name']) ?></td>
-                                <td><strong><?= number_format($order['total_amount'], 2) ?> Birr</strong></td>
-                                <td><span class="status-badge <?= $order['status'] ?>"><?= ucfirst(str_replace('_', ' ', $order['status'])) ?></span></td>
-                                <td><?= date('M d, Y g:i A', strtotime($order['created_at'])) ?></td>
-                                <td>
-                                    <button class="action-btn action-btn-secondary" onclick="viewOrder(<?= $order['id'] ?>)">View</button>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                    
-                    <div class="table-pagination">
-                        <div class="pagination-info">Showing 1-10 of <?= $totalOrders ?> orders</div>
-                        <div class="pagination-controls">
-                            <button class="pagination-btn" disabled>←</button>
-                            <button class="pagination-btn active">1</button>
-                            <button class="pagination-btn">2</button>
-                            <button class="pagination-btn">3</button>
-                            <button class="pagination-btn">→</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+<div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h1>📊 Admin Dashboard</h1>
+        <button class="btn-refresh" onclick="location.reload()">🔄 Refresh Data</button>
     </div>
     
-    <script>
-        // Ensure sidebar links are always clickable (prevents z-index/overlay issues)
-        document.querySelectorAll('.admin-sidebar .nav-item').forEach(a => {
-            a.style.pointerEvents = 'auto';
-        });
+    <!-- Stats Row 1 -->
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">Total Customers</span><span>👥</span></div><div class="stat-value"><?php echo number_format($totalCustomers); ?></div><div class="stat-trend up">+<?php echo $newUsersToday; ?> today</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">Active Restaurants</span><span>🏪</span></div><div class="stat-value"><?php echo number_format($activeRestaurants); ?> / <?php echo $totalRestaurants; ?></div><div class="stat-trend"><?php echo $pendingRestaurants; ?> pending</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">Delivery Partners</span><span>🚚</span></div><div class="stat-value"><?php echo number_format($totalDeliveryPartners); ?></div><div class="stat-trend"><?php echo $onlineDeliveryPartners; ?> online</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">Menu Items</span><span>🍽️</span></div><div class="stat-value"><?php echo number_format($totalMenuItems); ?></div><div class="stat-trend"><?php echo $availableMenuItems; ?> available</div></div>
+    </div>
+    
+    <!-- Stats Row 2 -->
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">Total Orders</span><span>📦</span></div><div class="stat-value"><?php echo number_format($totalOrders); ?></div><div class="stat-trend"><?php echo $todayOrders; ?> today</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">Pending Orders</span><span>⏳</span></div><div class="stat-value"><?php echo number_format($pendingOrders); ?></div><div class="stat-trend">Need attention</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">Delivered Orders</span><span>✅</span></div><div class="stat-value"><?php echo number_format($deliveredOrders); ?></div><div class="stat-trend"><?php echo $totalOrders ? round(($deliveredOrders/$totalOrders)*100,1) : 0; ?>% complete</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">Avg Rating</span><span>⭐</span></div><div class="stat-value"><?php echo number_format($avgRating, 1); ?></div><div class="stat-trend">Customer satisfaction</div></div>
+    </div>
+    
+    <!-- Stats Row 3 -->
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">Total Revenue</span><span>💰</span></div><div class="stat-value"><?php echo number_format($totalRevenue, 0); ?> Birr</div><div class="stat-trend up">+<?php echo number_format($todayRevenue, 0); ?> today</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">This Month</span><span>📅</span></div><div class="stat-value"><?php echo number_format($monthRevenue, 0); ?> Birr</div><div class="stat-trend"><?php echo $monthOrders; ?> orders</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">Avg Order Value</span><span>📊</span></div><div class="stat-value"><?php echo number_format($avgOrderValue, 2); ?> Birr</div><div class="stat-trend">Per order average</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">Commission (15%)</span><span>💸</span></div><div class="stat-value"><?php echo number_format($totalCommission, 0); ?> Birr</div><div class="stat-trend"><?php echo number_format($monthCommission, 0); ?> this month</div></div>
+    </div>
+    
+    <!-- Charts -->
+    <?php if(!empty($monthlyLabels)): ?>
+    <div class="charts-grid">
+        <div class="chart-card"><div class="chart-title">📈 Monthly Revenue Trend</div><div class="chart-container"><canvas id="revenueChart"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">📊 Monthly Orders</div><div class="chart-container"><canvas id="ordersChart"></canvas></div></div>
+    </div>
+    <?php endif; ?>
+    
+    <!-- Top Restaurants -->
+    <?php if(!empty($topRestaurants)): ?>
+    <div class="table-card">
+        <div class="table-header"><div class="table-title">🏆 Top Restaurants</div><a href="/admin/restaurants.php" style="color:#FC8019;text-decoration:none">View All →</a></div>
+        <table><thead><tr><th>#</th><th>Name</th><th>Cuisine</th><th>Orders</th><th>Revenue</th><th>Rating</th></tr></thead>
+        <tbody><?php $i=1; foreach($topRestaurants as $r): ?>
+        <tr><td><?php echo $i++; ?></td><td><strong><?php echo htmlspecialchars($r['name']); ?></strong></td><td><?php echo htmlspecialchars($r['cuisine_type'] ?? '-'); ?></td><td><?php echo number_format($r['order_count']); ?></td><td><?php echo number_format($r['total_revenue'], 0); ?> Birr</td><td>⭐ <?php echo number_format($r['rating'], 1); ?></td></tr>
+        <?php endforeach; ?></tbody>
+        </table>
+    </div>
+    <?php endif; ?>
+    
+    <!-- Recent Orders -->
+    <?php if(!empty($recentOrders)): ?>
+    <div class="table-card">
+        <div class="table-header"><div class="table-title">📋 Recent Orders</div><a href="/admin/orders.php" style="color:#FC8019;text-decoration:none">View All →</a></div>
+        <table><thead><tr><th>Order #</th><th>Customer</th><th>Restaurant</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody><?php foreach($recentOrders as $order): ?>
+        <tr><td><strong>#<?php echo htmlspecialchars($order['order_number']); ?></strong></td><td><?php echo htmlspecialchars($order['customer_name'] ?? '-'); ?></td><td><?php echo htmlspecialchars($order['restaurant_name'] ?? '-'); ?></td><td><?php echo number_format($order['total_amount'], 2); ?> Birr</td><td><span class="status-badge status-<?php echo $order['status']; ?>"><?php echo ucfirst($order['status']); ?></span></td><td><?php echo date('M d, H:i', strtotime($order['created_at'])); ?></td></tr>
+        <?php endforeach; ?></tbody>
+        </table>
+    </div>
+    <?php endif; ?>
+</div>
 
-        // Sidebar toggle
-        document.getElementById('sidebarToggle').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('collapsed');
-            document.getElementById('mainContent').classList.toggle('expanded');
-        });
-        
-        // Chart
-        const ctx = document.getElementById('revenueChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: 'Revenue (Birr)',
-                    data: [4500, 5200, 4800, 6100, 7300, 8200, 9100],
-                    borderColor: '#FC8019',
-                    backgroundColor: 'rgba(252, 128, 25, 0.1)',
-                    tension: 0.4
-                }, {
-                    label: 'Orders',
-                    data: [120, 145, 135, 160, 200, 240, 310],
-                    borderColor: '#48C479',
-                    backgroundColor: 'rgba(72, 196, 121, 0.1)',
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-        
-        // View order function
-        function viewOrder(id) {
-            window.location.href = `/admin/orders.php?id=${id}`;
-        }
+<script>
+<?php if(!empty($monthlyLabels)): ?>
+const monthlyLabels = <?php echo json_encode($monthlyLabels); ?>;
+const monthlyRevenue = <?php echo json_encode($monthlyRevenue); ?>;
+const monthlyOrders = <?php echo json_encode($monthlyOrders); ?>;
 
-        // Day/Night theme toggle
-        const themeRoot = document.getElementById('adminThemeRoot');
-        const darkToggle = document.getElementById('darkModeToggle');
-        const THEME_KEY = 'gebeta_admin_theme'; // 'day' | 'night'
+new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: { labels: monthlyLabels, datasets: [{ label: 'Revenue (Birr)', data: monthlyRevenue, borderColor: '#FC8019', backgroundColor: 'rgba(252,128,25,0.1)', fill: true, tension: 0.4 }] },
+    options: { responsive: true, maintainAspectRatio: true }
+});
 
-        function applyTheme(theme) {
-            if (!themeRoot) return;
-            const isNight = theme === 'night';
-            themeRoot.classList.toggle('night', isNight);
-
-            // keep icon: 🌙 for night, ☀️ for day
-            if (darkToggle) {
-                darkToggle.querySelector('span')?.textContent = isNight ? '🌙' : '☀️';
-            }
-        }
-
-        function initTheme() {
-            const saved = localStorage.getItem(THEME_KEY);
-            if (saved === 'night' || saved === 'day') {
-                applyTheme(saved);
-                return;
-            }
-            // default: system preference
-            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            applyTheme(prefersDark ? 'night' : 'day');
-        }
-
-        darkToggle?.addEventListener('click', () => {
-            const currentNight = themeRoot?.classList.contains('night');
-            const next = currentNight ? 'day' : 'night';
-            localStorage.setItem(THEME_KEY, next);
-            applyTheme(next);
-        });
-
-        initTheme();
-    </script>
+new Chart(document.getElementById('ordersChart'), {
+    type: 'bar',
+    data: { labels: monthlyLabels, datasets: [{ label: 'Orders', data: monthlyOrders, backgroundColor: '#10B981', borderRadius: 8 }] },
+    options: { responsive: true, maintainAspectRatio: true }
+});
+<?php endif; ?>
+</script>
 </body>
 </html>
-
+EOF
