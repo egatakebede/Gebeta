@@ -64,6 +64,7 @@ function flash_has($key) {
     return isset($_SESSION['flash'][$key]);
 }
 
+// Single redirect function - handles both header and JS fallback
 function redirect($url) {
     if (!headers_sent()) {
         header("Location: $url");

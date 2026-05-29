@@ -44,10 +44,8 @@ function login_user(array $user) {
 }
 
 function logout_user() {
-    // Clear all session variables
     $_SESSION = array();
     
-    // Delete session cookie
     if (ini_get("session.use_cookies")) {
         $params = session_get_cookie_params();
         setcookie(session_name(), '', time() - 42000,
@@ -56,21 +54,9 @@ function logout_user() {
         );
     }
     
-    // Destroy session
     session_destroy();
 }
 
-function redirect($url) {
-    // Check if headers have already been sent
-    if (!headers_sent()) {
-        header("Location: $url");
-        exit;
-    } else {
-        // Fallback if headers already sent
-        echo "<script>window.location.href='$url';</script>";
-        echo "<noscript><meta http-equiv='refresh' content='0;url=$url'></noscript>";
-        exit;
-    }
-}
+// Note: redirect() function is now only in functions.php
 ?>
 EOF
