@@ -744,7 +744,7 @@ $topRestaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <td><?php echo htmlspecialchars($order['customer_name']); ?></td>
                                 <td><?php echo htmlspecialchars($order['restaurant_name']); ?></td>
                                 <td><strong><?php echo number_format($order['total_amount'], 2); ?> Birr</strong></td>
-                                <td><span class="status-badge <?php echo str_replace('_', ' ', $order['status']); ?>"><?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?></span></td>
+                                <td><span class="status-badge <?php echo $order['status']; ?>"><?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?></span></td>
                                 <td><?php echo date('M d, Y H:i', strtotime($order['created_at'])); ?></td>
                                 <td><a href="/admin/orders.php?id=<?php echo $order['id']; ?>" class="action-btn action-btn-primary">View</a></td>
                             </tr>

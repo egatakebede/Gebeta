@@ -503,6 +503,10 @@ for ($i = 5; $i >= 0; $i--) {
             z-index: 99;
         }
         
+        .sidebar-overlay.active {
+            display: block;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .stats-grid {

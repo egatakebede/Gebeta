@@ -663,6 +663,10 @@ $totalRevenue = $stmt->fetchColumn() ?: 0;
             background: rgba(0,0,0,0.5);
             z-index: 99;
         }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
         
         /* Alert */
         .alert {
@@ -679,7 +683,7 @@ $totalRevenue = $stmt->fetchColumn() ?: 0;
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
-                transform: translateX(-260px);
+                transform: translateX(-100%);
             }
             .sidebar.mobile-open {
                 transform: translateX(0);
