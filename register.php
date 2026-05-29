@@ -31,9 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
     
-    $latitude = $_POST['latitude'] ?? null;
-    $longitude = $_POST['longitude'] ?? null;
-    $location_name = $_POST['location_name'] ?? null;
+    $latitude = !empty($_POST['latitude']) ? (float)$_POST['latitude'] : null;
+    $longitude = !empty($_POST['longitude']) ? (float)$_POST['longitude'] : null;
+    $location_name = !empty($_POST['location_name']) ? trim($_POST['location_name']) : null;
     
     // Validation
     if (empty($formData['name'])) {
@@ -65,10 +65,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($stmt->fetchColumn()) {
             $error = 'Email already registered';
-
-            flash_set('register_error', $error);
-            header('Location: /index.php');
-            exit;
         } else {
             try {
                 // Hash password
@@ -98,10 +94,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } catch (PDOException $e) {
                 $error = 'Registration failed. Please try again.';
                 error_log('Registration error: ' . $e->getMessage());
-
-                flash_set('register_error', $error);
-                header('Location: /index.php');
-                exit;
             }
         }
     }
@@ -152,11 +144,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .header {
             text-align: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
         
         .logo-icon {
-            font-size: 2.5rem;
+            font-size: 2rem;
             margin-bottom: 0.5rem;
         }
         
@@ -302,6 +294,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
         
         <form method="POST">
+            <?= csrf_field() ?>
             <div class="form-group">
                 <label class="form-label">Full Name</label>
                 <input 
@@ -430,7 +423,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         submitBtn.disabled = true;
                     }
                 } catch (error) {
- ust reduce                    console.error('Error checking email:', error);
+                    console.error('Error checking email:', error);
                 }
             }, 500);
         });

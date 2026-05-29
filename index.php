@@ -32,7 +32,7 @@ require_once __DIR__ . '/includes/functions.php';
 // Check for login error from redirect
 $loginError = flash_get('login_error');
 $registerError = flash_get('register_error');
-$forlgotError = flash_get('forgot_error');
+$forgotError = flash_get('forgot_error');
  
 // Safe stats fetching with fallbacks
 $totalRestaurants = 0;
@@ -928,13 +928,13 @@ if (empty($topRestaurants)) {
         .modal.active { display: block; }
         
         .modal-header {
-            padding: 1.5rem 1.5rem 0;
+            padding: 1rem 1.25rem 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
-        .modal-header h2 { font-size: 1.5rem; color: var(--gray-800); }
+        .modal-header h2 { font-size: 1.25rem; color: var(--gray-800); }
         
         .modal-close {
             background: none;

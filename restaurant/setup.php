@@ -10,6 +10,8 @@ if ($stmt->fetch()) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrfcre_verify();
+    
     $name = sanitize($_POST['name'] ?? '');
     $description = sanitize($_POST['description'] ?? '');
     $cuisine_type = sanitize($_POST['cuisine_type'] ?? '');
@@ -94,6 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
             
             <form method="post">
+                <?= csrf_field() ?>
                 <label>Restaurant Name *</label>
                 <input type="text" name="name" placeholder="e.g. Habesha Restaurant" required>
                 

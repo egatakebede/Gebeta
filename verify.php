@@ -45,6 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([$p['name'], $p['email'], $p['phone'], $p['password'], $p['role'], $p['latitude'], $p['longitude'], $p['location_name']]);
                 $userId = $pdo->lastInsertId();
                 
+                if (!$userId) {
+                    throw new PDOException("User ID not generated");
+                }
+                
                 $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
                 $stmt->execute([$userId]);
                 $userData = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -54,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 redirect(get_dashboard_url($userData['role']));
             } catch (PDOException $e) {
+                error_log('Final Registration DB Error: ' . $e->getMessage());
                 $error = "Registration failed. Please try again.";
             }
         } else {
@@ -103,6 +108,10 @@ $title = $purpose === 'register' ? 'Verify your email' : 'Reset your password';
             gap: 10px;
             justify-content: center;
             margin-bottom: 24px;
+        }
+        @media (max-width: 380px) {
+            .otp-inputs { gap: 6px; }
+            .otp-inputs input { width: 40px; height: 50px; font-size: 20px; }
         }
         .otp-inputs input {
             width: 48px;
@@ -234,6 +243,15 @@ $title = $purpose === 'register' ? 'Verify your email' : 'Reset your password';
     });
 
     inputs[0].focus();
+
+    // If PHP returned an error, clear inputs for a fresh start
+    <?php if ($error): ?>
+    inputs.forEach(input => {
+        input.value = '';
+        input.classList.remove('filled');
+    });
+    inputs[0].focus();
+    <?php endif; ?>
 
     // Resend with 60s cooldown
     let cooldown = 0;
