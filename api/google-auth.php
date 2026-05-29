@@ -41,6 +41,7 @@ try {
     $name = $payload['name'] ?? 'Google User';
     $google_id = $payload['sub'] ?? null;
     
+    $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ?');
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     

@@ -15,11 +15,16 @@ if (!$restaurant) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#FC8019">
     <title><?= htmlspecialchars($restaurant['name'] ?? 'Restaurant') ?> · Dashboard</title>
 
     <link rel="stylesheet" href="/assets/css/admin-layout.css">
     <link rel="stylesheet" href="/assets/css/admin-components.css">
+    <link rel="stylesheet" href="/assets/css/responsive.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <style>
@@ -1220,5 +1225,8 @@ window.addEventListener('beforeunload', () => {
     if (analyticsPeakChartInstance) analyticsPeakChartInstance.destroy();
 });
 </script>
+
+<!-- RESPONSIVE JS -->
+<script src="/assets/js/responsive.js"></script>
 </body>
 </html>

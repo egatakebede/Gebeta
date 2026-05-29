@@ -32,8 +32,7 @@ require_once __DIR__ . '/includes/functions.php';
 // Check for login error from redirect
 $loginError = flash_get('login_error');
 $registerError = flash_get('register_error');
-$forgotError = flash_get('forgot_error');
-
+ 
 // Safe stats fetching with fallbacks
 $totalRestaurants = 0;
 $totalOrders = 15234;
@@ -81,11 +80,11 @@ $allFoodImages = [
 ];
 
 $restaurantImages = [
-    'Yod Abyssinia' => 'tibs.jpg',
-    'Kategna' => 'injera.jpg',
+    'Yod Abyssinia' => 'doro-wat.jpg',
+    'Kategna' => 'kitfo.jpg',
     'Tomoca Coffee' => 'coffee.jpg',
     'Pizza Hut' => 'burger.jpg',
-    'Kaldi\'s Coffee' => 'coffee.jpg',
+    'Kaldi\'s Coffee' => 'injera.jpg',
     'Mama\'s Kitchen' => 'doro-wat.jpg',
 ];
 
@@ -133,11 +132,17 @@ if (empty($topRestaurants)) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#FC8019">
     <title>Gebeta · Premium Food Delivery in Hawassa</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#FC8019">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- RESPONSIVE CSS -->
+    <link rel="stylesheet" href="/assets/css/responsive.css">
+    
     <script src="/assets/js/script.js" defer></script>
     <style>
         * {
@@ -1347,10 +1352,10 @@ if (empty($topRestaurants)) {
 
             <div class="hero-visual">
                 <div class="hero-card-image hero-card-image--big animate-float">
-                    <img src="/assets/images/food/injera.jpg" alt="Ayinet">
+                    <img src="/assets/images/food/tibs.jpg" alt="Tibs">
                 </div>
                 <div class="hero-card-image hero-card-image--small animate-float">
-                    <img src="/assets/images/food/doro-wat.jpg" alt="Dorowot">
+                    <img src="/assets/images/food/injera.jpg" alt="Ayinet">
                 </div>
             </div>
         </div>
@@ -1812,5 +1817,8 @@ if (empty($topRestaurants)) {
             window.addEventListener('load', () => openModal('forgot-password-modal'));
         <?php endif; ?>
     </script>
+    
+    <!-- RESPONSIVE JS -->
+    <script src="/assets/js/responsive.js"></script>
 </body>
 </html>

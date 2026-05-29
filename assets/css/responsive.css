@@ -1,0 +1,627 @@
+/* ============================================
+   MOBILE FIRST RESPONSIVE DESIGN
+   ============================================ */
+
+/* ROOT - Font Sizes Scale */
+:root {
+    /* Colors */
+    --primary: #FC8019;
+    --primary-dark: #E56B0F;
+    --secondary: #1F2937;
+    --light: #F9FAFB;
+    --border: #E5E7EB;
+    --text: #1F2937;
+    --text-light: #6B7280;
+    
+    /* Spacing - Mobile First */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+    
+    /* Typography - Mobile First */
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-base: 16px;
+    --font-size-lg: 18px;
+    --font-size-xl: 20px;
+    --font-size-2xl: 24px;
+    --font-size-3xl: 32px;
+    
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+    
+    /* Touch Target (minimum 44px) */
+    --touch-target: 44px;
+}
+
+/* ============================================
+   TYPOGRAPHY - MOBILE RESPONSIVE
+   ============================================ */
+
+html {
+    /* Mobile: 16px base */
+    font-size: 16px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    color: var(--text);
+    background: #FFFFFF;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings - Mobile First Sizing */
+h1 {
+    font-size: var(--font-size-2xl);
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: var(--spacing-md);
+}
+
+h2 {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: var(--spacing-md);
+}
+
+h3 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+}
+
+p {
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-md);
+}
+
+small {
+    font-size: var(--font-size-xs);
+    color: var(--text-light);
+}
+
+/* ============================================
+   LAYOUT - MOBILE FIRST GRID
+   ============================================ */
+
+.container {
+    width: 100%;
+    padding: var(--spacing-md);
+    margin: 0 auto;
+}
+
+.grid {
+    display: grid;
+    gap: var(--spacing-md);
+    /* Mobile: 1 column */
+    grid-template-columns: 1fr;
+}
+
+.grid-2 {
+    display: grid;
+    gap: var(--spacing-md);
+    /* Mobile: 1 column, Tablet+: 2 columns */
+    grid-template-columns: 1fr;
+}
+
+.grid-3 {
+    display: grid;
+    gap: var(--spacing-md);
+    /* Mobile: 1 column, Tablet+: 3 columns */
+    grid-template-columns: 1fr;
+}
+
+.grid-auto {
+    display: grid;
+    gap: var(--spacing-md);
+    /* Mobile: 1 column, auto-fit on larger screens */
+    grid-template-columns: 1fr;
+}
+
+/* ============================================
+   BUTTONS & TOUCH TARGETS
+   ============================================ */
+
+button, .btn, input[type="button"], input[type="submit"] {
+    /* Minimum 44px touch target for mobile */
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+    padding: 12px 16px;
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+    
+    /* Remove default iOS styling */
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:active, .btn:active {
+    transform: scale(0.98);
+}
+
+/* ============================================
+   FORMS - MOBILE OPTIMIZED
+   ============================================ */
+
+input, textarea, select {
+    width: 100%;
+    padding: 12px var(--spacing-md);
+    font-size: 16px; /* Prevents iOS zoom on input focus */
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+    
+    /* Remove default styling */
+    background-color: #FFFFFF;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(252, 128, 25, 0.1);
+}
+
+/* Label spacing */
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+}
+
+/* Form group spacing */
+.form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+/* Select arrow customization */
+select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23FC8019' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+/* ============================================
+   NAVIGATION - MOBILE FIRST
+   ============================================ */
+
+/* Bottom Navigation for Mobile */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    background: white;
+    border-top: 1px solid var(--border);
+    z-index: 100;
+    padding: 8px 0 12px;
+    gap: var(--spacing-sm);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: var(--text-light);
+    font-size: var(--font-size-xs);
+    border-radius: var(--radius-lg);
+    flex: 1;
+    transition: all 0.2s;
+    min-height: var(--touch-target);
+    justify-content: center;
+}
+
+.nav-item:active {
+    background: var(--light);
+}
+
+.nav-icon {
+    font-size: 24px;
+}
+
+/* Mobile: Body padding for bottom nav */
+body {
+    padding-bottom: 70px;
+}
+
+/* ============================================
+   HEADER - STICKY & MOBILE SAFE
+   ============================================ */
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: var(--spacing-md);
+    
+    /* Safe area for notch phones */
+    padding-top: max(var(--spacing-md), env(safe-area-inset-top));
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.hamburger {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+    padding: 8px;
+    border: none;
+    background: none;
+}
+
+.hamburger span {
+    width: 24px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: all 0.3s;
+}
+
+/* ============================================
+   CARDS - RESPONSIVE
+   ============================================ */
+
+.card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    transition: all 0.2s;
+}
+
+.card:active {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* ============================================
+   MODALS - MOBILE FULL SCREEN
+   ============================================ */
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: flex-end;
+    z-index: 200;
+}
+
+.modal-content {
+    background: white;
+    width: 100%;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding: var(--spacing-lg);
+    padding-bottom: max(var(--spacing-lg), env(safe-area-inset-bottom));
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-close {
+    position: absolute;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    width: var(--touch-target);
+    height: var(--touch-target);
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* ============================================
+   IMAGES - RESPONSIVE
+   ============================================ */
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.img-cover {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
+/* ============================================
+   SCROLLING - SMOOTH
+   ============================================ */
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* Remove scrollbar but keep scrolling */
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--light);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 2px;
+}
+
+/* ============================================
+   SPACING HELPERS
+   ============================================ */
+
+.p-xs { padding: var(--spacing-xs); }
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+
+.m-xs { margin: var(--spacing-xs); }
+.m-sm { margin: var(--spacing-sm); }
+.m-md { margin: var(--spacing-md); }
+.m-lg { margin: var(--spacing-lg); }
+
+.mt-xs { margin-top: var(--spacing-xs); }
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+
+.mb-xs { margin-bottom: var(--spacing-xs); }
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+
+/* ============================================
+   VISIBILITY HELPERS
+   ============================================ */
+
+.mobile-only {
+    display: block;
+}
+
+.desktop-only {
+    display: none;
+}
+
+/* ============================================
+   MEDIA QUERIES - TABLET & UP
+   ============================================ */
+
+@media (min-width: 640px) {
+    /* Small Tablet (640px) */
+    :root {
+        --font-size-base: 16px;
+        --spacing-md: 20px;
+        --spacing-lg: 32px;
+    }
+    
+    h1 {
+        font-size: 28px;
+    }
+    
+    h2 {
+        font-size: 24px;
+    }
+    
+    .container {
+        max-width: 640px;
+        padding: var(--spacing-lg);
+    }
+    
+    .grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 768px) {
+    /* Tablet (768px) */
+    
+    body {
+        padding-bottom: 0;
+    }
+    
+    .bottom-nav {
+        display: none;
+    }
+    
+    .container {
+        max-width: 768px;
+        padding: var(--spacing-lg);
+    }
+    
+    .grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .grid-auto {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    
+    h1 {
+        font-size: 32px;
+    }
+    
+    h2 {
+        font-size: 28px;
+    }
+    
+    .mobile-only {
+        display: none;
+    }
+    
+    .desktop-only {
+        display: block;
+    }
+    
+    .hamburger {
+        display: none;
+    }
+}
+
+@media (min-width: 1024px) {
+    /* Desktop (1024px) */
+    
+    .container {
+        max-width: 1024px;
+    }
+    
+    .grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .grid-auto {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    
+    h1 {
+        font-size: 36px;
+    }
+    
+    h2 {
+        font-size: 32px;
+    }
+}
+
+@media (min-width: 1280px) {
+    /* Large Desktop (1280px) */
+    
+    .container {
+        max-width: 1200px;
+    }
+    
+    .grid-auto {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+}
+
+/* ============================================
+   LANDSCAPE MODE
+   ============================================ */
+
+@media (max-height: 600px) and (orientation: landscape) {
+    .header {
+        padding: var(--spacing-sm);
+    }
+    
+    h1 {
+        font-size: var(--font-size-lg);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .bottom-nav {
+        padding: 4px 0 8px;
+    }
+    
+    body {
+        padding-bottom: 60px;
+    }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+    .bottom-nav,
+    .header,
+    .hamburger {
+        display: none;
+    }
+    
+    body {
+        padding-bottom: 0;
+    }
+}
+
+/* ============================================
+   DARK MODE (OPTIONAL)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #0F172A;
+        color: #F1F5F9;
+    }
+    
+    .card,
+    .modal-content,
+    input,
+    select,
+    textarea {
+        background: #1E293B;
+        border-color: #334155;
+        color: #F1F5F9;
+    }
+}
+
+/* ============================================
+   REDUCED MOTION (ACCESSIBILITY)
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ============================================
+   LARGE TEXT (ACCESSIBILITY)
+   ============================================ */
+
+@media (min-width: 1920px) {
+    :root {
+        --font-size-base: 18px;
+        --font-size-lg: 20px;
+        --font-size-xl: 24px;
+    }
+    
+    .container {
+        max-width: 1400px;
+    }
+}
