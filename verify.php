@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 unset($_SESSION['pending_email']);
 
                 flash_set('login_success', 'Account created successfully! You can now log in.');
-                redirect('/login.php');
+                redirect('/index.php');
             } catch (PDOException $e) {
                 error_log('Final Registration DB Error: ' . $e->getMessage());
                 $error = "Registration failed. Please try again.";
@@ -109,9 +109,9 @@ $title = $purpose === 'register' ? 'Verify your email' : 'Reset your password';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?> · Gebeta</title>
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FC8019">
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css">
     <style>
         .verify-wrap {
             min-height: 100vh;
@@ -304,7 +304,7 @@ $title = $purpose === 'register' ? 'Verify your email' : 'Reset your password';
     async function resendOtp(btn) {
         btn.disabled = true;
         try {
-            const res  = await fetch('/api/resend-otp.php', { method: 'POST' });
+            const res  = await fetch('api/resend-otp.php', { method: 'POST' });
             const data = await res.json();
             if (data.success) {
                 timerEl.textContent = '';

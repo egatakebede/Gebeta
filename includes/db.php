@@ -20,13 +20,14 @@ function get_db() {
         
         // Add SSL for Aiven cloud connection
         if (strpos(DB_HOST, 'aivencloud.com') !== false) {
+            $options[PDO::MYSQL_ATTR_SSL_CA] = null;
             $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
         }
         
         $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         
         // Ensure DB timezone matches PHP timezone for OTP expiry checks
-        $pdo->exec("SET time_zone = '+03:00'");
+        $pdo->exec("SET time_zone = '+03:00'"); // Africa/Addis_Ababa
         
         // Set timezone
         $pdo->exec("SET NAMES utf8mb4");

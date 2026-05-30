@@ -29,14 +29,16 @@ function env_get($key, $default = null) {
 // Auto-detect environment
 $hostname = gethostname();
 $serverName = $_SERVER['SERVER_NAME'] ?? $_SERVER['HTTP_HOST'] ?? '';
-$isLocal = (
-    $serverName === 'localhost' || 
-    $serverName === '127.0.0.1' || 
+$envOverride = env_get('APP_ENV');
+
+$isLocal = $envOverride === 'development' || (
+    strpos($serverName, 'localhost') !== false || 
+    strpos($serverName, '127.0.0.1') !== false || 
     strpos($hostname, 'HP-EliteBook') !== false ||
     strpos($hostname, 'DESKTOP') !== false ||
     strpos($hostname, 'LAPTOP') !== false ||
     file_exists('/home/e/Gebeta/.env.local')
-);
+) && $envOverride !== 'production';
 
 // Choose database based on environment
 if ($isLocal) {
@@ -49,11 +51,11 @@ if ($isLocal) {
     $environment = 'development';
 } else {
     // Use Aiven cloud
-    $rawDbHost = env_get('DB_HOST_AIVEN', 'gebeta-db-gebeta.a.aivencloud.com:23863');
+    $rawDbHost = env_get('DB_HOST_AIVEN', 'gebeta-db-gebeta.a.aivencloud.com');
     $dbPort = (int)env_get('DB_PORT_AIVEN', 23863);
     $dbName = env_get('DB_NAME_AIVEN', 'defaultdb');
     $dbUser = env_get('DB_USER_AIVEN', 'avnadmin');
-    $dbPass = env_get('DB_PASS_AIVEN', 'AVNS_AcTxZFvGTBqvOJcYhPY');
+    $dbPass = env_get('DB_PASS_AIVEN', ''); // Prioritize .env for security
     $environment = 'production';
 }
 
@@ -75,7 +77,8 @@ define('ENVIRONMENT', $environment);
 define('SITE_NAME', 'Gebeta');
 define('APP_NAME', 'Gebeta');
 define('APP_VERSION', '0.9');
-define('BASE_URL', env_get('BASE_URL', 'http://localhost:7844'));
+
+define('BASE_URL', rtrim(env_get('BASE_URL', "$protocol://$currentHost/Gebeta"), '/'));
 
 // Timeouts and Security
 define('SESSION_TIMEOUT', 3600); 

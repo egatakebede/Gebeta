@@ -54,10 +54,10 @@ try {
         login_user($user);
         
         $redirect = match($user['role']) {
-            'admin'      => '/admin/dashboard.php',
-            'restaurant' => '/restaurant/dashboard.php',
-            'delivery'   => '/delivery/dashboard.php',
-            default      => '/customer/dashboard.php'
+            'admin'      => 'admin/dashboard.php',
+            'restaurant' => 'restaurant/dashboard.php',
+            'delivery'   => 'delivery/dashboard.php',
+            default      => 'customer/dashboard.php'
         };
         
         echo json_encode([
@@ -114,7 +114,7 @@ try {
             echo json_encode([
                 'success' => true,
                 'message' => 'Account created successfully',
-                'redirect' => '/customer/dashboard.php'
+                'redirect' => 'customer/dashboard.php'
             ]);
             exit;
             

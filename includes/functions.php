@@ -94,7 +94,7 @@ function csrf_verify() {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-    if (empty($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_token'] ?? '')) {
+    if (empty($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])) {
         http_response_code(403);
         die('CSRF token mismatch. Please refresh the page and try again.');
     }
@@ -224,14 +224,18 @@ function send_otp_email($email, $name, $purpose) {
 
 // Single redirect function
 function redirect($url) {
+    // Ensure BASE_URL is cleaned and relative paths are handled correctly without double slashes
+    $base = rtrim(BASE_URL, '/');
+    $path = ltrim($url, '/');
+    $fullUrl = (strpos($url, 'http') === 0) ? $url : "$base/$path";
+    
     if (!headers_sent()) {
-        header("Location: $url");
-        exit;
+        header("Location: $fullUrl");
     } else {
-        echo "<script>window.location.href='$url';</script>";
-        echo "<noscript><meta http-equiv='refresh' content='0;url=$url'></noscript>";
-        exit;
+        echo '<meta http-equiv="refresh" content="0;url=' . $fullUrl . '">';
+        echo '<script>window.top.location.href="' . $fullUrl . '";</script>';
     }
+    exit;
 }
 
 /**

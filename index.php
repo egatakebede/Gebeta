@@ -31,6 +31,7 @@ require_once __DIR__ . '/includes/functions.php';
 
 // Check for login error from redirect
 $loginError = flash_get('login_error');
+$loginSuccess = flash_get('login_success');
 $registerError = flash_get('register_error');
 $forgotError = flash_get('forgot_error');
  
@@ -138,13 +139,13 @@ if (empty($topRestaurants)) {
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#FC8019">
     <title>Gebeta · Premium Food Delivery in Hawassa</title>
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- RESPONSIVE CSS -->
-    <link rel="stylesheet" href="/assets/css/responsive.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
     
-    <script src="/assets/js/script.js" defer></script>
+    <script src="assets/js/script.js" defer></script>
     <style>
         * {
             margin: 0;
@@ -1401,10 +1402,10 @@ if (empty($topRestaurants)) {
 
             <div class="hero-visual">
                 <div class="hero-card-image hero-card-image--big animate-float">
-                    <img src="/assets/images/food/tibs.jpg" alt="Tibs">
+                    <img src="assets/images/food/tibs.jpg" alt="Tibs">
                 </div>
                 <div class="hero-card-image hero-card-image--small animate-float">
-                    <img src="/assets/images/food/injera.jpg" alt="Ayinet">
+                    <img src="assets/images/food/injera.jpg" alt="Ayinet">
                 </div>
             </div>
         </div>
@@ -1458,7 +1459,7 @@ if (empty($topRestaurants)) {
             ?>
                 <div class="restaurant-card" data-name="<?= strtolower($restaurant['name']) ?>" data-cuisine="<?= strtolower($restaurant['cuisine_type']) ?>" data-rating="<?= $restaurant['rating'] ?>" data-fee="<?= $deliveryFee ?>" data-popular="<?= $isPopular ? '1' : '0' ?>" data-fast="<?= $isFast ? '1' : '0' ?>" onclick="goToRestaurant(<?= $restaurant['id'] ?>)">
                     <div class="restaurant-image">
-                        <img src="/assets/images/food/<?= $image ?>" alt="<?= htmlspecialchars($restaurant['name']) ?>">
+                        <img src="assets/images/food/<?= $image ?>" alt="<?= htmlspecialchars($restaurant['name']) ?>">
                         <?php if ($isPopular): ?>
                             <div class="popular-badge">🔥 Popular</div>
                         <?php endif; ?>
@@ -1565,6 +1566,11 @@ if (empty($topRestaurants)) {
                 <?php if ($loginError): ?>
                     <div class="modal-alert modal-alert-error">
                         ❌ <?= htmlspecialchars($loginError) ?>
+                    </div>
+                <?php endif; ?>
+                <?php if ($loginSuccess): ?>
+                    <div class="modal-alert" style="background: #D1FAE5; color: #059669; border-color: #A7F3D0;">
+                        ✅ <?= htmlspecialchars($loginSuccess) ?>
                     </div>
                 <?php endif; ?>
                 <div class="form-group">
@@ -1817,7 +1823,7 @@ if (empty($topRestaurants)) {
         }
         
         function goToRestaurant(id) {
-            window.location.href = `/customer/restaurant.php?id=${id}`;
+            window.location.href = `customer/restaurant.php?id=${id}`;
         }
         
         function handleFormSubmit(form) {
@@ -1992,6 +1998,11 @@ if (empty($topRestaurants)) {
 
         // Auto-reopen login modal if there was an error
         <?php if ($loginError): ?>
+            window.addEventListener('load', () => openModal('login-modal'));
+        <?php endif; ?>
+
+        // Auto-reopen login modal if there was a success message (e.g. verified)
+        <?php if ($loginSuccess): ?>
             window.addEventListener('load', () => openModal('login-modal'));
         <?php endif; ?>
 
