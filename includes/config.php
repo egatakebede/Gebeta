@@ -73,7 +73,14 @@ define('DB_USER', $dbUser);
 define('DB_PASS', $dbPass);
 define('ENVIRONMENT', $environment);
 define('SITE_NAME', 'Gebeta');
+define('APP_NAME', 'Gebeta');
+define('APP_VERSION', '0.9');
 define('BASE_URL', env_get('BASE_URL', 'http://localhost:7844'));
+
+// Timeouts and Security
+define('SESSION_TIMEOUT', 3600); 
+define('OTP_TIMEOUT', 300); // 5 minutes
+define('PASSWORD_RESET_TIMEOUT', 3600);
 
 // Brevo API Configuration
 define('BREVO_API_KEY', env_get('BREVO_API_KEY', ''));

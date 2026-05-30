@@ -4,8 +4,8 @@ require_once __DIR__ . '/includes/db.php';
 
 $purpose = in_array($_GET['purpose'] ?? '', ['register', 'reset'], true) ? $_GET['purpose'] : null;
 
-// Guard: must have a pending session for this purpose
-if ($purpose === 'register' && empty($_SESSION['pending_register'])) {
+// Guard: must have a pending email for this purpose
+if ($purpose === 'register' && empty($_SESSION['pending_email'])) {
     flash_set('register_error', 'Your verification session has expired. Please try registering again.');
     redirect('/index.php');
 }
@@ -18,10 +18,7 @@ if (!$purpose) {
     redirect('/index.php');
 }
 
-$email = $purpose === 'register'
-    ? $_SESSION['pending_register']['email']
-    : $_SESSION['pending_reset']['email'];
-
+$email = $purpose === 'register' ? $_SESSION['pending_email'] : $_SESSION['pending_reset']['email'];
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -38,11 +35,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Invalid or expired code. Please try again.';
     } else {
         if ($purpose === 'register') {
-            $p = $_SESSION['pending_register'];
             try {
+                // Get pending data from database
+                $stmt = $pdo->prepare('SELECT * FROM registration_pending WHERE email = ? AND expires_at > NOW()');
+                $stmt->execute([$email]);
+                $p = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if (!$p) {
+                    throw new Exception("Registration data not found or expired.");
+                }
+
                 // Insert new user as active since email is now verified
-                $stmt = $pdo->prepare('INSERT INTO users (name, email, phone, password, role, status, latitude, longitude, location_name, created_at) VALUES (?, ?, ?, ?, ?, "active", ?, ?, ?, NOW())');
-                $stmt->execute([$p['name'], $p['email'], $p['phone'], $p['password'], $p['role'], $p['latitude'], $p['longitude'], $p['location_name']]);
+                $stmt = $pdo->prepare('
+                    INSERT INTO users 
+                    (name, email, phone, password, role, status, email_verified, verified_at, latitude, longitude, location_name, created_at) 
+                    VALUES (?, ?, ?, ?, ?, "active", TRUE, NOW(), ?, ?, ?, NOW())
+                ');
+                $stmt->execute([
+                    $p['name'], $p['email'], $p['phone'], $p['password'], $p['role'], 
+                    $p['latitude'], $p['longitude'], $p['location_name']
+                ]);
                 $userId = $pdo->lastInsertId();
                 
                 if (!$userId) {
@@ -52,11 +64,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
                 $stmt->execute([$userId]);
                 $userData = $stmt->fetch(PDO::FETCH_ASSOC);
-                
-                login_user($userData);
-                unset($_SESSION['pending_register']);
 
-                redirect(get_dashboard_url($userData['role']));
+                // If role is restaurant, create the restaurant entry
+                if ($p['role'] === 'restaurant') {
+                    $stmt = $pdo->prepare('
+                        INSERT INTO restaurants 
+                        (user_id, name, cuisine_type, location, delivery_time, delivery_fee, status) 
+                        VALUES (?, ?, ?, ?, ?, ?, "active")
+                    ');
+                    $stmt->execute([
+                        $userId, 
+                        $p['restaurant_name'], 
+                        $p['cuisine_type'], 
+                        $p['restaurant_address'],
+                        $p['delivery_time'],
+                        $p['delivery_fee']
+                    ]);
+                }
+                
+                $pdo->prepare('DELETE FROM registration_pending WHERE email = ?')->execute([$email]);
+                unset($_SESSION['pending_email']);
+
+                flash_set('login_success', 'Account created successfully! You can now log in.');
+                redirect('/login.php');
             } catch (PDOException $e) {
                 error_log('Final Registration DB Error: ' . $e->getMessage());
                 $error = "Registration failed. Please try again.";

@@ -51,7 +51,7 @@ function login_user(array $user) {
         'email' => $user['email'],
         'phone' => $user['phone'] ?? '',
         'role' => $user['role'],
-        'login_time' => time()
+        'logged_in_at' => time()
     ];
 }
 

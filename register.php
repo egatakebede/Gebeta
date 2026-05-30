@@ -16,7 +16,12 @@ $formData = [
     'name' => '',
     'email' => '',
     'phone' => '',
-    'role' => 'customer'
+    'role' => 'customer',
+    'restaurant_name' => '',
+    'cuisine_type' => '',
+    'restaurant_address' => '',
+    'delivery_time' => '',
+    'delivery_fee' => '0'
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -26,7 +31,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'name' => trim($_POST['name'] ?? ''),
         'email' => trim($_POST['email'] ?? ''),
         'phone' => trim($_POST['phone'] ?? ''),
-        'role' => $_POST['role'] ?? 'customer'
+        'role' => $_POST['role'] ?? 'customer',
+        'restaurant_name' => trim($_POST['restaurant_name'] ?? ''),
+        'cuisine_type' => trim($_POST['cuisine_type'] ?? ''),
+        'restaurant_address' => trim($_POST['restaurant_address'] ?? ''),
+        'delivery_time' => trim($_POST['delivery_time'] ?? ''),
+        'delivery_fee' => trim($_POST['delivery_fee'] ?? '0')
     ];
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
@@ -46,6 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Invalid email format';
     } elseif (empty($formData['phone'])) {
         $error = 'Phone number is required';
+    } elseif (!preg_match('/^\+?251[0-9]{9}$/', str_replace([' ', '-'], '', $formData['phone']))) {
+        $error = 'Invalid Ethiopian phone number (format: +251911111111)';
     } elseif (empty($password)) {
         $error = 'Password is required';
     } elseif (strlen($password) < 8) {
@@ -58,6 +70,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Password must contain at least one number';
     } elseif (!in_array($formData['role'], ['customer', 'restaurant', 'delivery'])) {
         $error = 'Invalid role selected';
+    } elseif ($formData['role'] === 'restaurant') {
+        if (empty($formData['restaurant_name'])) {
+            $error = 'Restaurant name is required';
+        } elseif (empty($formData['cuisine_type'])) {
+            $error = 'Cuisine type is required';
+        } elseif (empty($formData['restaurant_address'])) {
+            $error = 'Restaurant address is required';
+        } elseif (!is_numeric($formData['delivery_fee'])) {
+            $error = 'Delivery fee must be a number';
+        }
     } else {
         // Check if email already exists
         $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
@@ -69,18 +91,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 // Hash password
                 $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+                $pendingExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes'));
                 
-                // Store pending registration data in session for OTP verification
-                $_SESSION['pending_register'] = [
-                    'name' => $formData['name'],
-                    'email' => $formData['email'],
-                    'phone' => $formData['phone'],
-                    'password' => $hashedPassword, // Store hashed password
-                    'role' => $formData['role'],
-                    'latitude' => $latitude,
-                    'longitude' => $longitude,
-                    'location_name' => $location_name
-                ];
+                // Delete any old pending registrations for this email
+                $pdo->prepare('DELETE FROM registration_pending WHERE email = ?')->execute([$formData['email']]);
+                
+                // Store pending registration data in database
+                $stmt = $pdo->prepare('
+                    INSERT INTO registration_pending 
+                    (email, name, phone, password, role, latitude, longitude, location_name, 
+                     restaurant_name, cuisine_type, restaurant_address, delivery_time, delivery_fee, expires_at) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ');
+                $stmt->execute([
+                    $formData['email'],
+                    $formData['name'],
+                    $formData['phone'],
+                    $hashedPassword,
+                    $formData['role'],
+                    $latitude, $longitude, $location_name,
+                    $formData['restaurant_name'],
+                    $formData['cuisine_type'],
+                    $formData['restaurant_address'],
+                    $formData['delivery_time'],
+                    $formData['delivery_fee'],
+                    $pendingExpiry
+                ]);
 
                 // Send OTP for email verification
                 $sent = send_otp_email($formData['email'], $formData['name'], 'register');
@@ -89,6 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     redirect('/index.php');
                 }
 
+                $_SESSION['pending_email'] = $formData['email'];
                 // Redirect to OTP verification page
                 redirect('/verify.php?purpose=register');
             } catch (PDOException $e) {
@@ -343,6 +380,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </select>
             </div>
             
+            <div id="restaurant-fields" style="display: <?php echo $formData['role'] === 'restaurant' ? 'block' : 'none'; ?>; border: 1px dashed #FC8019; padding: 15px; border-radius: 10px; margin-bottom: 15px; background: #FFF5ED;">
+                <h3 style="font-size: 1rem; margin-bottom: 10px; color: #E56B0F;">Restaurant Information</h3>
+                <div class="form-group">
+                    <label class="form-label">Restaurant Name</label>
+                    <input type="text" name="restaurant_name" class="form-input" placeholder="Yod Abyssinia" value="<?php echo htmlspecialchars($formData['restaurant_name']); ?>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cuisine Type</label>
+                    <input type="text" name="cuisine_type" class="form-input" placeholder="Ethiopian, Italian, etc." value="<?php echo htmlspecialchars($formData['cuisine_type']); ?>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Restaurant Address</label>
+                    <input type="text" name="restaurant_address" class="form-input" placeholder="Piassa, Hawassa" value="<?php echo htmlspecialchars($formData['restaurant_address']); ?>">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Delivery Time (min)</label>
+                        <input 
+                            type="text" 
+                            name="delivery_time" 
+                            class="form-input" 
+                            placeholder="e.g. 25-35"
+                            value="<?php echo htmlspecialchars($formData['delivery_time']); ?>"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Delivery Fee (Birr)</label>
+                        <input 
+                            type="number" 
+                            step="0.01"
+                            name="delivery_fee" 
+                            class="form-input" 
+                            placeholder="0.00"
+                            value="<?php echo htmlspecialchars($formData['delivery_fee']); ?>"
+                        >
+                    </div>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label class="form-label">Password</label>
                 <input 
@@ -393,7 +469,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const emailInput = document.getElementById('email');
         const emailFeedback = document.getElementById('email-feedback');
         const submitBtn = document.querySelector('button[type="submit"]');
+        const roleSelect = document.querySelector('select[name="role"]');
+        const restaurantFields = document.getElementById('restaurant-fields');
         let checkTimeout = null;
+
+        roleSelect.addEventListener('change', function() {
+            const isRestaurant = this.value === 'restaurant';
+            restaurantFields.style.display = isRestaurant ? 'block' : 'none';
+            restaurantFields.querySelectorAll('input:not([name="delivery_time"]):not([name="delivery_fee"])').forEach(input => input.required = isRestaurant);
+        });
 
         emailInput.addEventListener('input', function() {
             const email = this.value.trim();

@@ -1632,12 +1632,38 @@ if (empty($topRestaurants)) {
                 </div>
                 <div class="form-group">
                     <label>Register As</label>
-                    <select name="role" class="form-input" style="width: 100%;" required>
+                    <select name="role" id="reg-role-select" class="form-input" style="width: 100%;" required>
                         <option value="customer">Customer</option>
                         <option value="restaurant">Restaurant Owner</option>
                         <option value="delivery">Delivery Partner</option>
                     </select>
                 </div>
+                
+                <div id="restaurant-fields-modal" style="display: none; border: 1px dashed var(--primary); padding: 12px; border-radius: 12px; margin-bottom: 12px; background: var(--primary-light);">
+                    <div class="form-group">
+                        <label>Restaurant Name</label>
+                        <input type="text" name="restaurant_name" placeholder="Yod Abyssinia">
+                    </div>
+                    <div class="form-group">
+                        <label>Cuisine Type</label>
+                        <input type="text" name="cuisine_type" placeholder="Ethiopian, Italian, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label>Restaurant Address</label>
+                        <input type="text" name="restaurant_address" placeholder="Piassa, Hawassa">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label>Delivery Time (min)</label>
+                            <input type="text" name="delivery_time" placeholder="25-35">
+                        </div>
+                        <div class="form-group">
+                            <label>Delivery Fee (Birr)</label>
+                            <input type="number" step="0.01" name="delivery_fee" placeholder="0.00">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>Password</label>
                     <div class="password-input-wrapper">

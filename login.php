@@ -9,16 +9,17 @@ if (isset($_SESSION['user']) && !empty($_SESSION['user']['id'])) {
 }
 
 $error = flash_get('login_error') ?? '';
+$success = flash_get('login_success') ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
     
-    $email = trim($_POST['email'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $email = strtolower(trim($_POST['email'] ?? ''));
+    $password = $_POST['password'] ?? '';
     
     if (empty($email) || empty($password)) {
         flash_set('login_error', 'Email and password are required');
-        redirect('/index.php');
+        redirect('/login.php');
     } else {
         try {
             $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ?');
@@ -26,12 +27,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if (!$user || !password_verify($password, $user['password'])) {
+                // Detailed diagnostic logging (safe for production)
+                $logMsg = "Login failed for email: $email.";
+                if (!$user) {
+                    $logMsg .= " User not found in database.";
+                } else {
+                    $hashLen = strlen($user['password']);
+                    $logMsg .= " User found (Role: {$user['role']}, Status: {$user['status']}). Password mismatch. DB hash length: $hashLen.";
+                }
+                error_log($logMsg);
                 flash_set('login_error', 'Invalid email or password');
-                redirect('/index.php');
-            } elseif ($user['status'] !== 'active') {
-                $msg = $user['status'] === 'suspended' ? 'Your account has been suspended' : 'Your account is pending approval';
+                redirect('/login.php');
+            } elseif (strtolower($user['status']) !== 'active') {
+                $msg = strtolower($user['status']) === 'suspended' ? 'Your account has been suspended' : 'Your account is pending approval';
                 flash_set('login_error', $msg);
-                redirect('/index.php');
+                redirect('/login.php');
             } else {
                 login_user($user);
 
@@ -42,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (PDOException $e) {
             error_log($e->getMessage());
             flash_set('login_error', 'Database error. Please try again later.');
-            redirect('/index.php');
+            redirect('/login.php');
         }
     }
 }
@@ -204,6 +214,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ❌ <?php echo htmlspecialchars($error); ?>
         </div>
         <?php endif; ?>
+
+        <?php if ($success): ?>
+        <div class="alert alert-success" style="background: #D1FAE5; color: #059669; border: 1px solid #A7F3D0; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem; font-size: 0.875rem;">
+            ✅ <?php echo htmlspecialchars($success); ?>
+        </div>
+        <?php endif; ?>
         
         <form method="POST">
             <?= csrf_field() ?>
@@ -237,13 +253,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="links" style="display: flex; justify-content: space-between; margin-top: 1rem; font-size: 0.8rem;">
             <a href="/register.php">Create Account</a>
             <a href="/forgot-password.php">Forgot Password?</a>
-        </div>
-        
-        <div class="test-accounts" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #eee; font-size: 11px; color: #999; text-align: center;">
-            <div>Admin: admin@gebeta.com (password123)</div>
-            <div>Customer: abebe@customer.com (password123)</div>
-            <div>Restaurant: yod@restaurant.com (password123)</div>
-            <div>Delivery: abebe.driver@delivery.com (password123)</div>
         </div>
     </div>
 </body>

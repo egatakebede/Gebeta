@@ -37,6 +37,8 @@ CREATE TABLE users (
     location_name VARCHAR(255) DEFAULT NULL,
     profile_picture VARCHAR(255) DEFAULT NULL,
     location_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    email_verified BOOLEAN DEFAULT FALSE,
+    verified_at DATETIME NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -128,10 +130,32 @@ CREATE TABLE otps (
     email VARCHAR(100) NOT NULL,
     code VARCHAR(6) NOT NULL,
     purpose ENUM('register', 'login', 'reset') NOT NULL,
+    attempts INT DEFAULT 0,
+    max_attempts INT DEFAULT 3,
     expires_at DATETIME NOT NULL,
     used TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_email_purpose (email, purpose)
+);
+
+CREATE TABLE registration_pending (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20),
+    password VARCHAR(255) NOT NULL,
+    role ENUM('customer', 'restaurant', 'delivery') NOT NULL,
+    latitude DECIMAL(10,8) DEFAULT NULL,
+    longitude DECIMAL(11,8) DEFAULT NULL,
+    location_name VARCHAR(255) DEFAULT NULL,
+    restaurant_name VARCHAR(150),
+    cuisine_type VARCHAR(200),
+    restaurant_address VARCHAR(200),
+    delivery_time VARCHAR(50),
+    delivery_fee DECIMAL(10,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NOT NULL,
+    INDEX(email)
 );
 
 CREATE TABLE payments (
@@ -270,20 +294,40 @@ CREATE TABLE delivery_ratings (
     INDEX idx_partner (delivery_partner_id)
 );
 
+CREATE TABLE IF NOT EXISTS notifications (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(150) NOT NULL,
+    message TEXT NOT NULL,
+    link VARCHAR(255) DEFAULT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS activity_logs (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    level ENUM('INFO', 'WARNING', 'ERROR') DEFAULT 'INFO',
+    message TEXT NOT NULL,
+    user_id INT DEFAULT NULL,
+    ip_address VARCHAR(45),
+    data JSON DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Default test users (password: password123)
 INSERT INTO users (name, email, phone, password, role, status) VALUES
-('Admin User', 'egatakebede7@gmail.com', '+251911000001', '$2y$10$Z2nVTfsIoG5oDsJN8vnwQOtqDDwqUD6dlfFxzFqqOGbXPY8CaX/ai', 'admin', 'active'),
-('Yod Restaurant', 'yod@restaurant.com', '+251911000002', '$2y$10$eNDh14nZSQl7qKXnfBnoQezl8rVlKqxlj9grohwTkQaihcs87sZFC', 'restaurant', 'active'),
-('Standard Customer', 'customer@test.com', '+251911000003', '$2y$10$iTE5bq9RdPVCtv/N1u0QluUZdvuLFXakYIpsJYkz3l82XX/n4sUKm', 'customer', 'active'),
-('Abebe Kebede', 'abebe.driver@delivery.com', '+251911000004', '$2y$10$Z2nVTfsIoG5oDsJN8vnwQOtqDDwqUD6dlfFxzFqqOGbXPY8CaX/ai', 'delivery', 'active'),
-('Tigist Alemu', 'delivery2@gebeta.com', '+251911000005', '$2y$10$Z2nVTfsIoG5oDsJN8vnwQOtqDDwqUD6dlfFxzFqqOGbXPY8CaX/ai', 'delivery', 'active'),
-('Dawit Tesfaye', 'delivery3@gebeta.com', '+251911000006', '$2y$10$Z2nVTfsIoG5oDsJN8vnwQOtqDDwqUD6dlfFxzFqqOGbXPY8CaX/ai', 'delivery', 'active');
+('Admin User', 'admin@gebeta.com', '+251911111111', '$2y$10$W9rUY3S7u9pHXxN3m5pC3eJ2q8kQ1aX5b8nL2pM3vJ9x5Y7z1A8Zq', 'admin', 'active'),
+('Abebe Tadesse', 'abebe@customer.com', '+251922222222', '$2y$10$W9rUY3S7u9pHXxN3m5pC3eJ2q8kQ1aX5b8nL2pM3vJ9x5Y7z1A8Zq', 'customer', 'active'),
+('Yodit Abyssinia Restaurant', 'yod@restaurant.com', '+251911777777', '$2y$10$W9rUY3S7u9pHXxN3m5pC3eJ2q8kQ1aX5b8nL2pM3vJ9x5Y7z1A8Zq', 'restaurant', 'active'),
+('Abebe Driver', 'abebe.driver@delivery.com', '+251921222222', '$2y$10$W9rUY3S7u9pHXxN3m5pC3eJ2q8kQ1aX5b8nL2pM3vJ9x5Y7z1A8Zq', 'delivery', 'active');
 
 INSERT INTO restaurants (user_id, name, description, cuisine_type, location, phone, opening_time, closing_time, rating, delivery_time, delivery_fee, status) VALUES
-(2, 'Yod Abyssinia', 'Authentic Ethiopian food with traditional recipes.', 'Ethiopian, Injera, Doro Wat', 'Piassa, Hawassa', '+251911000002', '09:00:00', '22:00:00', 4.8, '25-35', 0.00, 'active'),
-(2, 'Pizza Hut', 'World famous pizza now in Hawassa.', 'Pizza, Italian', 'Bole, Hawassa', '+251911000010', '10:00:00', '22:00:00', 4.5, '30-40', 30.00, 'active'),
-(2, 'Kaldi\'s Coffee', 'The best Ethiopian coffee experience.', 'Cafe, Coffee, Snacks', 'Piazza, Hawassa', '+251911000011', '07:00:00', '21:00:00', 4.6, '10-20', 15.00, 'active'),
-(2, 'Mama\'s Kitchen', 'Homemade taste with international variety.', 'International, Burgers', 'Megenagna, Hawassa', '+251911000012', '08:00:00', '21:00:00', 4.4, '25-35', 25.00, 'active');
+(3, 'Yod Abyssinia', 'Authentic Ethiopian food with traditional recipes.', 'Ethiopian, Injera, Doro Wat', 'Piassa, Hawassa', '+251911777777', '09:00:00', '22:00:00', 4.8, '25-35', 0.00, 'active'),
+(3, 'Pizza Hut', 'World famous pizza now in Hawassa.', 'Pizza, Italian', 'Bole, Hawassa', '+251911000010', '10:00:00', '22:00:00', 4.5, '30-40', 30.00, 'active'),
+(3, 'Kaldi\'s Coffee', 'The best Ethiopian coffee experience.', 'Cafe, Coffee, Snacks', 'Piazza, Hawassa', '+251911000011', '07:00:00', '21:00:00', 4.6, '10-20', 15.00, 'active'),
+(3, 'Mama\'s Kitchen', 'Homemade taste with international variety.', 'International, Burgers', 'Megenagna, Hawassa', '+251911000012', '08:00:00', '21:00:00', 4.4, '25-35', 25.00, 'active');
 
 INSERT INTO categories (restaurant_id, name, display_order) VALUES
 (1, 'Main dishes', 1),
@@ -306,6 +350,4 @@ INSERT INTO order_items (order_id, menu_item_id, quantity, price) VALUES
 
 -- Delivery partners data
 INSERT INTO delivery_partners (user_id, phone, vehicle_type, vehicle_number, vehicle_color, license_number, license_expiry, is_available, status, rating, total_deliveries, verified) VALUES
-(4, '+251911000004', 'bike', 'AA-12345', 'Red', 'DL-2024-001', '2026-12-31', TRUE, 'online', 4.8, 156, TRUE),
-(5, '+251911000005', 'auto', 'AA-67890', 'Blue', 'DL-2024-002', '2027-06-30', TRUE, 'online', 4.6, 89, TRUE),
-(6, '+251911000006', 'car', 'AA-11223', 'White', 'DL-2024-003', '2025-12-31', TRUE, 'offline', 4.9, 234, TRUE);
+(4, '+251921222222', 'bike', 'AA-12345', 'Red', 'DL-2024-001', '2026-12-31', TRUE, 'online', 4.8, 156, TRUE);
