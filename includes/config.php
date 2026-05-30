@@ -55,7 +55,7 @@ if ($isLocal) {
     $dbPort = (int)env_get('DB_PORT_AIVEN', 23863);
     $dbName = env_get('DB_NAME_AIVEN', 'defaultdb');
     $dbUser = env_get('DB_USER_AIVEN', 'avnadmin');
-    $dbPass = env_get('DB_PASS_AIVEN', ''); // Prioritize .env for security
+    $dbPass = env_get('DB_PASS_AIVEN', 'AVNS_AcTxZFvGTBqvOJcYhPY'); // Prioritize .env for security
     $environment = 'production';
 }
 
@@ -78,6 +78,9 @@ define('SITE_NAME', 'Gebeta');
 define('APP_NAME', 'Gebeta');
 define('APP_VERSION', '0.9');
 
+// Auto-detect protocol and host for BASE_URL
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$currentHost = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
 define('BASE_URL', rtrim(env_get('BASE_URL', "$protocol://$currentHost/Gebeta"), '/'));
 
 // Timeouts and Security
