@@ -10,13 +10,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Determine pending context
-if (!empty($_SESSION['pending_register'])) {
-    $email   = $_SESSION['pending_register']['email'];
-    $name    = $_SESSION['pending_register']['name'];
+if (!empty($_SESSION['pending_email'])) {
+    $email   = $_SESSION['pending_email'];
     $purpose = 'register';
+    // Get name from registration_pending table
+    $stmt = $pdo->prepare('SELECT name FROM registration_pending WHERE email = ?');
+    $stmt->execute([$email]);
+    $pending = $stmt->fetch(PDO::FETCH_ASSOC);
+    $name = $pending['name'] ?? 'User';
 } elseif (!empty($_SESSION['pending_reset'])) {
     $email   = $_SESSION['pending_reset']['email'];
-    $name    = $_SESSION['pending_reset']['name'];
+    $name    = $_SESSION['pending_reset']['name'] ?? 'User';
     $purpose = 'reset';
 } else {
     echo json_encode(['success' => false, 'message' => 'Session expired. Please start again.']);

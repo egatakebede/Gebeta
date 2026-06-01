@@ -16,10 +16,10 @@ function is_logged_in() {
 
 function get_dashboard_url($role) {
     return match ($role) {
-        'admin'      => '/admin/dashboard.php',
-        'restaurant' => '/restaurant/dashboard.php',
-        'delivery'   => '/delivery/dashboard.php',
-        default      => '/customer/dashboard.php',
+        'admin'      => 'admin/dashboard.php',
+        'restaurant' => 'restaurant/dashboard.php',
+        'delivery'   => 'delivery/dashboard.php',
+        default      => 'customer/dashboard.php',
     };
 }
 

@@ -1,4 +1,7 @@
 <?php
+// Enable output buffering to ensure redirects work even if there's accidental output
+ob_start();
+
 // Set default timezone for OTP calculations
 date_default_timezone_set('Africa/Addis_Ababa');
 
@@ -51,11 +54,11 @@ if ($isLocal) {
     $environment = 'development';
 } else {
     // Use Aiven cloud
-    $rawDbHost = env_get('DB_HOST_AIVEN', 'gebeta-db-gebeta.a.aivencloud.com');
-    $dbPort = (int)env_get('DB_PORT_AIVEN', 23863);
-    $dbName = env_get('DB_NAME_AIVEN', 'defaultdb');
-    $dbUser = env_get('DB_USER_AIVEN', 'avnadmin');
-    $dbPass = env_get('DB_PASS_AIVEN', 'AVNS_AcTxZFvGTBqvOJcYhPY'); // Prioritize .env for security
+    $rawDbHost = env_get('DB_HOST', 'gebeta-db-gebeta.a.aivencloud.com');
+    $dbPort = (int)env_get('DB_PORT', 23863);
+    $dbName = env_get('DB_NAME', 'defaultdb');
+    $dbUser = env_get('DB_USER', 'avnadmin');
+    $dbPass = env_get('DB_PASS', '');
     $environment = 'production';
 }
 
@@ -80,8 +83,16 @@ define('APP_VERSION', '0.9');
 
 // Auto-detect protocol and host for BASE_URL
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$currentHost = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
-define('BASE_URL', rtrim(env_get('BASE_URL', "$protocol://$currentHost/Gebeta"), '/'));
+$currentHost = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '';
+
+// If running on Render, the app is usually at the root (no /Gebeta suffix)
+$isRender = (strpos($currentHost, 'onrender.com') !== false);
+
+// Reliable subdirectory detection
+$scriptPath = $_SERVER['SCRIPT_NAME'] ?? '';
+$pathSuffix = (strpos($scriptPath, '/Gebeta') === 0) ? '/Gebeta' : '';
+
+define('BASE_URL', rtrim(env_get('BASE_URL', "$protocol://$currentHost$pathSuffix"), '/'));
 
 // Timeouts and Security
 define('SESSION_TIMEOUT', 3600); 

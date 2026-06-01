@@ -11,8 +11,7 @@ if (isset($_SESSION['user']) && !empty($_SESSION['user']['id'])) {
 $error = flash_get('login_error') ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Temporarily disabled for troubleshooting CSRF issues
-    // csrf_verify();
+    csrf_verify();
     
     $email = strtolower(trim($_POST['email'] ?? ''));
     $password = $_POST['password'] ?? '';
@@ -27,15 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if (!$user || !password_verify($password, $user['password'])) {
-                // Detailed diagnostic logging (safe for production)
-                $logMsg = "Login failed for email: $email on " . DB_NAME . ".";
-                if (!$user) {
-                    $logMsg .= " User not found in database.";
-                } else {
-                    $hashLen = strlen($user['password']);
-                    $logMsg .= " User found (Role: {$user['role']}, Status: {$user['status']}). Password mismatch. DB hash length: $hashLen.";
-                }
-                error_log($logMsg);
+                error_log("Login failed for email: $email");
                 flash_set('login_error', 'Invalid email or password');
                 redirect('/index.php');
             } elseif (strtolower($user['status']) !== 'active') {

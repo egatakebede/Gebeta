@@ -135,51 +135,47 @@ function get_cart_total() {
  * Email and OTP Helpers
  */
 function send_email($to, $subject, $message) {
-    // Priority: Constant from config.php, then Environment Variable
     $apiKey = (defined('BREVO_API_KEY') && BREVO_API_KEY !== '') ? BREVO_API_KEY : env_get('BREVO_API_KEY');
 
-    if ($apiKey) {
-        $url = 'https://api.brevo.com/v3/smtp/email';
-        $data = [
-            'sender' => ['name' => defined('SITE_NAME') ? SITE_NAME : 'Gebeta', 'email' => 'egatakebede7@gmail.com'],
-            'to' => [['email' => $to]],
-            'subject' => $subject,
-            'htmlContent' => $message
-        ];
-        
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'api-key: ' . $apiKey,
-            'Content-Type: application/json',
-            'Accept: application/json'
-        ]);
-        
-        $response = curl_exec($ch);
-        $err = curl_error($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        
-        if ($httpCode >= 200 && $httpCode < 300) {
-            error_log("Brevo: Email successfully sent to $to");
-            return true;
-        }
-        
-        if ($err) {
-            error_log("Brevo: Curl Error: " . $err);
-        } else {
-            error_log("Brevo: API Error (HTTP $httpCode): " . $response);
-        }
+    if (!$apiKey || $apiKey === '') {
+        error_log("Brevo: API Key not configured");
         return false;
     }
 
-    // Fallback to mail() if Brevo is not configured
-    error_log("Brevo: API Key not found, falling back to local mail()");
-    $headers = "MIME-Version: 1.0\r\nContent-type:text/html;charset=UTF-8\r\n";
-    $headers .= "From: Gebeta <egatakebede7@gmail.com>\r\nReply-To: support@gebeta.com\r\n";
-    return @mail($to, $subject, $message, $headers);
+    $url = 'https://api.brevo.com/v3/smtp/email';
+    $data = [
+        'sender' => ['name' => defined('SITE_NAME') ? SITE_NAME : 'Gebeta', 'email' => 'egatakebede7@gmail.com'],
+        'to' => [['email' => $to]],
+        'subject' => $subject,
+        'htmlContent' => $message
+    ];
+    
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'api-key: ' . $apiKey,
+        'Content-Type: application/json',
+        'Accept: application/json'
+    ]);
+    
+    $response = curl_exec($ch);
+    $err = curl_error($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode >= 200 && $httpCode < 300) {
+        error_log("Brevo: Email successfully sent to $to");
+        return true;
+    }
+    
+    if ($err) {
+        error_log("Brevo: Curl Error: " . $err);
+    } else {
+        error_log("Brevo: API Error (HTTP $httpCode): " . $response);
+    }
+    return false;
 }
 
 function generate_otp($email, $purpose) {
@@ -210,8 +206,7 @@ function verify_otp($email, $code, $purpose) {
 function send_otp_email($email, $name, $purpose) {
     $code = generate_otp($email, $purpose);
     
-    // Log the OTP to the server error log so you can see it "on time" even if email fails
-    error_log("Gebeta OTP DEBUG - To: $email, Code: $code, Purpose: $purpose");
+    error_log("Gebeta OTP - To: $email, Code: $code, Purpose: $purpose");
     
     $subject = "Gebeta - Verification Code";
     $message = "
@@ -219,7 +214,14 @@ function send_otp_email($email, $name, $purpose) {
         <p>Hello $name,</p>
         <p>Your verification code is: <strong style='font-size: 24px; color: #FC8019;'>$code</strong></p>
         <p>This code will expire in 15 minutes.</p>";
-    return send_email($email, $subject, $message);
+    
+    $sent = send_email($email, $subject, $message);
+    
+    if (!$sent) {
+        error_log("Failed to send OTP email to $email. Check Brevo API configuration.");
+    }
+    
+    return $sent;
 }
 
 // Single redirect function
@@ -232,8 +234,13 @@ function redirect($url) {
     if (!headers_sent()) {
         header("Location: $fullUrl");
     } else {
-        echo '<meta http-equiv="refresh" content="0;url=' . $fullUrl . '">';
-        echo '<script>window.top.location.href="' . $fullUrl . '";</script>';
+        // Use a complete HTML structure for the fallback to avoid "unsafe attempt" errors
+        echo '<!DOCTYPE html><html><head>';
+        echo '<meta http-equiv="refresh" content="0;url=' . htmlspecialchars($fullUrl) . '">';
+        echo '<title>Redirecting...</title>';
+        echo '</head><body>';
+        echo '<script>try { window.top.location.replace("' . addslashes($fullUrl) . '"); } catch(e) { window.location.href = "' . addslashes($fullUrl) . '"; }</script>';
+        echo '</body></html>';
     }
     exit;
 }
