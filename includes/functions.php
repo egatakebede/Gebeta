@@ -206,8 +206,6 @@ function verify_otp($email, $code, $purpose) {
 function send_otp_email($email, $name, $purpose) {
     $code = generate_otp($email, $purpose);
     
-    error_log("Gebeta OTP - To: $email, Code: $code, Purpose: $purpose");
-    
     $subject = "Gebeta - Verification Code";
     $message = "
         <h2>Verification Code</h2>

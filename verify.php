@@ -27,8 +27,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $code = trim(implode('', array_map(fn($i) => $_POST["d$i"] ?? '', range(1, 6))));
     $code = preg_replace('/\D/', '', $code);
 
-    error_log('OTP DEBUG - email: ' . $email . ' | code: ' . $code . ' | purpose: ' . $purpose);
-
     if (strlen($code) !== 6) {
         $error = 'Please enter the full 6-digit code.';
     } elseif (!verify_otp($email, $code, $purpose)) {
